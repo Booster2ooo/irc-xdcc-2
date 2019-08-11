@@ -1,0 +1,36 @@
+{
+  "name": "irc-xdcc-2",
+  "version": "1.0.0",
+  "description": "irc-xdcc-2 is a node-irc promises based extension providing xdcc handlers.",
+  "main": "./dist/esm5/index.js",
+  "module": "./dist/esm5/index.js",
+  "es2015": "./dist/esm2015/index.js",
+  "types": "./dist/types/index.d.ts",
+  "scripts": {
+    "cleanup": "shx rm -rf dist",
+    "postversion": "node tools/update-in-app-version",
+    "prebuild": "npm run cleanup",
+    "prepublish": "npm run tsc",
+    "build": "tsc && tsc --target es2019 --outDir dist/esm2015",
+    "tsc": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Booster2ooo/irc-xdcc-2.git"
+  },
+  "author": "Booster2ooo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Booster2ooo/irc-xdcc-2/issues"
+  },
+  "homepage": "https://github.com/Booster2ooo/irc-xdcc-2#readme",
+  "dependencies": {
+    "irc": "^0.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.1",
+    "shx": "^0.3.2",
+    "typescript": "^3.5.3"
+  }
+}

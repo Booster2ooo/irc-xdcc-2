@@ -1,0 +1,5 @@
+.*
+*.log
+dummy.js
+node_modules
+src
