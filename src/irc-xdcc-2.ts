@@ -420,14 +420,17 @@ export class XdccClient extends Client {
 	private validateTransferDestination(transfer: XdccTransfer): Promise<XdccTransfer> {
 		const partLocation: fs.PathLike = transfer.location + '.part' as fs.PathLike;
 		return statP(transfer.location as fs.PathLike)
+			.catch((err: any) => {
+				return Promise.resolve(new fs.Stats());
+			})
 			.then((stats: fs.Stats) => {
 				if (stats.isFile() && stats.size === transfer.fileSize) {
 					return Promise.reject('file with the same size already exists');
 				}
-				return statP(partLocation);
-			})
-			.catch((err: any) => {
-				return statP(partLocation);
+				return statP(partLocation)
+					.catch((err: any) => {
+						return Promise.resolve(new fs.Stats());
+					});
 			})
 			.then((stats: fs.Stats) => {
 				if (stats.isFile() && stats.size === transfer.fileSize) {
@@ -446,9 +449,6 @@ export class XdccClient extends Client {
 					return unlinkP(partLocation)
 						.then(() => Promise.resolve(transfer));
 				}
-			})
-			.catch((err: any) => {
-				return Promise.resolve(transfer);
 			});
 	}
 

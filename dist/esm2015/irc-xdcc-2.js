@@ -369,14 +369,17 @@ class XdccClient extends irc_1.Client {
     validateTransferDestination(transfer) {
         const partLocation = transfer.location + '.part';
         return fs_promise_1.statP(transfer.location)
+            .catch((err) => {
+            return Promise.resolve(new fs.Stats());
+        })
             .then((stats) => {
             if (stats.isFile() && stats.size === transfer.fileSize) {
                 return Promise.reject('file with the same size already exists');
             }
-            return fs_promise_1.statP(partLocation);
-        })
-            .catch((err) => {
-            return fs_promise_1.statP(partLocation);
+            return fs_promise_1.statP(partLocation)
+                .catch((err) => {
+                return Promise.resolve(new fs.Stats());
+            });
         })
             .then((stats) => {
             if (stats.isFile() && stats.size === transfer.fileSize) {
@@ -395,9 +398,6 @@ class XdccClient extends irc_1.Client {
                 return fs_promise_1.unlinkP(partLocation)
                     .then(() => Promise.resolve(transfer));
             }
-        })
-            .catch((err) => {
-            return Promise.resolve(transfer);
         });
     }
     /**

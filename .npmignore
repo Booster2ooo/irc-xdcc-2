@@ -3,3 +3,5 @@
 dummy.js
 node_modules
 src
+tools
+tsconfig.json

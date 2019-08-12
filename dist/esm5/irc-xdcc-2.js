@@ -412,14 +412,17 @@ var XdccClient = /** @class */ (function (_super) {
         var _this = this;
         var partLocation = transfer.location + '.part';
         return fs_promise_1.statP(transfer.location)
+            .catch(function (err) {
+            return Promise.resolve(new fs.Stats());
+        })
             .then(function (stats) {
             if (stats.isFile() && stats.size === transfer.fileSize) {
                 return Promise.reject('file with the same size already exists');
             }
-            return fs_promise_1.statP(partLocation);
-        })
-            .catch(function (err) {
-            return fs_promise_1.statP(partLocation);
+            return fs_promise_1.statP(partLocation)
+                .catch(function (err) {
+                return Promise.resolve(new fs.Stats());
+            });
         })
             .then(function (stats) {
             if (stats.isFile() && stats.size === transfer.fileSize) {
@@ -438,9 +441,6 @@ var XdccClient = /** @class */ (function (_super) {
                 return fs_promise_1.unlinkP(partLocation)
                     .then(function () { return Promise.resolve(transfer); });
             }
-        })
-            .catch(function (err) {
-            return Promise.resolve(transfer);
         });
     };
     /**

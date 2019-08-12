@@ -10,7 +10,7 @@
     "cleanup": "shx rm -rf dist",
     "postversion": "node tools/update-in-app-version",
     "prebuild": "npm run cleanup",
-    "prepublish": "npm run tsc",
+    "prepare": "npm run build",
     "build": "tsc && tsc --target es2019 --outDir dist/esm2015",
     "tsc": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
