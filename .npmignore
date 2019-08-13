@@ -1,7 +1,10 @@
 .*
 *.log
 dummy.js
+tsconfig.json
+typedoc.json
+
 node_modules
 src
 tools
-tsconfig.json
+doc

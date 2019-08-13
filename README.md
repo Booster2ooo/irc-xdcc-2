@@ -15,11 +15,13 @@ irc-xdcc-2 provide an extension of the irc module. It extends the [available opt
 
 ```javascript
 {
-    progressInterval: 1 // [Number(int)] Interval (in seconds) for the progress update event (xdcc-progress) -- Default: 1
+    server: 'irc.server.org'
+  , nick: 'myCoolNick'
+  , progressInterval: 1 // [Number(int)] Interval (in seconds) for the progress update event (xdcc-progress) -- Default: 1
   , destPath: '/path/to/destination' // [String] The destination path for downloads -- Default: module lib path + /downloads -> path.join(__dirname, 'downloads')
   , resume: true // [Boolean] Allow download to be resumed -- Default: true
   , acceptUnpooled: false // [Boolean] Accept unrequested DCC download (accept a DCC download that doesn't match any DCC instance found in _transfer pool array -- Default: false
-  , closeConnectionOnDisconnect: true // [Boolean] Defines if active sockets should be closed if the IRC client get disconnected or killed -- Default: true
+  , closeConnectionOnCompleted: true // [Boolean] Defines if active sockets should be closed if the IRC client get disconnected or killed -- Default: true
   , method: 'say' // [String] Defines the method to trigger xdcc bots, either 'say' or 'ctcp' (you can also use 'msg' which is equivalent to 'say') -- Default: 'say'
   , sendCommand: 'XDCC SEND' // [String] the command sent to the bot to initiate the xdcc transfert -- Default: 'XDCC SEND'
   , cancelCommand: 'XDCC CANCEL' // [String] the command sent to the bot to cancel the xdcc transfert -- Default: 'XDCC CANCEL'
@@ -32,19 +34,21 @@ irc-xdcc-2 provide an extension of the irc module. It extends the [available opt
 
 
 ## Constructor
-Instead of using the new irc.Client() method as a construtor, the irc-xdcc module provides a promise wrapper:
+Instead of using the new irc.Client(), use XdccClient insteead, server and nick arguments moved to options:
 
 ```javascript
-const client = new ircXdcc.XdccClient(server, nick, options);
+const client = new ircXdcc2.XdccClient(options);
 ```
 
 Sample:
 ```javascript
 // load irc-xdcc module
-const ircXdcc = require('irc-xdcc-2')
+const ircXdcc2 = require('irc-xdcc-2')
 // set options object
 const ircOptions = {
-    userName: 'ircClient'
+    server: 'irc.myserver.com'
+  , nick: 'myBotNick'
+  , userName: 'ircClient'
   , realName: 'irc Client'
   , port: 6697
   , autoRejoin: true
@@ -60,10 +64,10 @@ const ircOptions = {
   , destPath: './dls'
   , resume: false
   , acceptUnpooled: true
-  , closeConnectionOnDisconnect: false
+  , closeConnectionOnCompleted: false
 };
 // launch the client
-const client = ircXdcc('irc.myserver.com', 'myBotNick', ircOptions);
+const client = ircXdcc2.XdccClient(ircOptions);
 // listen for events and do things
 client.addListener('registered', () => { console.log('bot connected'); });
 client.addListener('connected', () => { 
@@ -217,74 +221,73 @@ Event fired when a method call is erroneous
 ```
 (transfer) => {}
 ```
-Fired when a DCC instance has been created (and added to the transfer pool) (see misc. section for transfer info)
+Fired when a DCC instance has been created (and added to the transfer pool) (see [transfer info](#xdcc-transfer))
 
 **'xdcc-requested'**
 ```
 (transfer) => {}
 ```
-Fired when a DCC pack has been requested to the bot (see misc. section for transfer info)
+Fired when the XDCC SEND command has been sent (see [transfer info](#xdcc-transfer))
 
 **'xdcc-removed'**
 ```
 (transfer) => {}
 ```
-Fired when a DCC instance has been removed from transfer pool (see misc. section for transfer info)
+Fired when a DCC instance has been removed from transfer pool (see [transfer info](#xdcc-transfer))
 
 **'xdcc-started'**
 ```
 (transfer) => {}
 ```
-Fired when the XDCC SEND command has been sent (see misc. section for transfer info)
+Fired when the file transfer begins (see [transfer info](#xdcc-transfer))
 
 **'xdcc-queued'**
 ```
 (transfer) => {}
 ```
-Fired when a queue notice has been recieved from the server (see misc. section for transfer info)
+Fired when a queue notice has been recieved from the server (see [transfer info](#xdcc-transfer))
 
 **'xdcc-complete'**
 ```
 (transfer) => {}
 ```
-Fired when a DCC transfer has been completed (see misc. section for transfer info)
+Fired when a DCC transfer has been completed (see [transfer info](#xdcc-transfer))
 
 **'xdcc-canceled'**
 ```
 (transfer) => {}
 ```
-Fired when a DCC transfer has been canceled (see misc. section for transfer info)
+Fired when a DCC transfer has been canceled (see [transfer info](#xdcc-transfer))
 
 **'xdcc-connect'**
 ```
 (transfer) => {}
 ```
-Fired when a DCC transfer starts (see misc. section for transfer info)
+Fired when a DCC transfer starts (see [transfer info](#xdcc-transfer))
 
 **'xdcc-progress'**
 ```
 (transfer) => {}
 ```
-Fired every *option.progressInterval* seconds during DCC transfer providing the *received* bytes
+Fired every *option.progressInterval* seconds during DCC transfer providing the *received* bytes (see [transfer info](#xdcc-transfer))
 
 **'xdcc-dlerror'**
 ```
 (transfer) => {}
 ```
-Fired when a DCC transfer encounter an error
+Fired when a DCC transfer encounter an error (see [transfer info](#xdcc-transfer))
 
 
 ## XDCC transfer
 An XDCC transfer is an object containing pieces of information regarding a specific xdcc transfer.
 
-**xdccInfo**
+**XdccTransfer**
 ```javascript
 {
     botNick // xdcc server bot nick
   , packId // xdcc pack id
   , server // irc server
-  , state // state of the transfer
-  , canceled // true if an error occured and the cancel/remove command has been send to the server
+  , state // state of the transfer (see below)
   , transferId // id of the instance in the internal transfer pool
   , resumePosition // used to store resume position when an incomplete file is found in the destPath
   , receivedBytes // number of bytes received
@@ -306,7 +309,17 @@ An XDCC transfer is an object containing pieces of information regarding a speci
   , error // error message/infos
 }
 ```
-
+**XdccTransferState**
+```javascript
+{
+    cancelled = -1,
+    pending = 0,
+    requested = 1,
+    queued = 2,
+    started = 3,
+    completed = 4
+}
+```
 
 ## Thanks
 

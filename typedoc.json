@@ -1,0 +1,10 @@
+{
+	"out": "doc/",
+	"exclude": [
+		"**/converter.ts",
+		"**/fs-promise.ts",
+		"**/index.ts",
+		"**/untyped.ts",
+		"**/version.ts"
+	]
+}

@@ -1,3 +1,6 @@
+/**
+ * Class representing an XDCC pack info.
+ */
 export declare class XdccPackInfo {
     /**
      * @property {string} botNick nick of the bot serving the file
@@ -11,5 +14,9 @@ export declare class XdccPackInfo {
      * @property {string} server IRC server
      */
     server: string | undefined;
+    /**
+     * @property {string} fileName transfered file name
+     */
+    fileName: string | undefined | null;
 }
 //# sourceMappingURL=irc-xdcc-pack-info.d.ts.map

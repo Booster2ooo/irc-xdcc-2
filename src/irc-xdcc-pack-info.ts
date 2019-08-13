@@ -1,5 +1,8 @@
 import { XdccTransferState } from "./irc-xdcc-transfer-state";
 
+/**
+ * Class representing an XDCC pack info.
+ */
 export class XdccPackInfo {
 
 	/**
@@ -16,5 +19,10 @@ export class XdccPackInfo {
 	 * @property {string} server IRC server
 	 */
 	server: string|undefined;
+
+	/**
+	 * @property {string} fileName transfered file name
+	 */
+	fileName: string|undefined|null;
 
 }

@@ -44,17 +44,33 @@ var irc_xdcc_transfer_state_1 = require("./irc-xdcc-transfer-state");
 var irc_xdcc_message_1 = require("./irc-xdcc-message");
 var converter_1 = require("./converter");
 var version_1 = require("./version");
+/**
+ * Class representing an irc client with XDCC capabilities.
+ * @extends irc.Client
+ */
 var XdccClient = /** @class */ (function (_super) {
     __extends(XdccClient, _super);
-    function XdccClient(server, nick, opt) {
+    function XdccClient(opt) {
         var _this = this;
-        var defaultOptions = new irc_xdcc_options_1.XdccOptions();
+        var defaultOptions = new irc_xdcc_options_1.XdccClientOptions();
         var options = __assign({}, defaultOptions, opt);
         // create destination directory
         fs.mkdir(options.destPath, function () { });
-        _this = _super.call(this, server, nick, options) || this;
+        switch (options.method.toLowerCase()) {
+            case 'say':
+            case 'msg':
+                options.method = 'say';
+                break;
+            case 'ctcp':
+                options.method = 'ctcp';
+                break;
+            default:
+                options.method = 'say';
+                break;
+        }
+        _this = _super.call(this, opt.server, opt.nick, options) || this;
         _this.isConnected = false;
-        _this.server = server;
+        _this.server = opt.server;
         _this.options = options;
         _this.transferPool = [];
         _this.lastIndex = 0;
@@ -72,6 +88,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Adds a transfer to the pool based on the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
+     * @returns {Promise<XdccTransfer} A promise for the addedd XDCC transfer
      */
     XdccClient.prototype.addTransfer = function (packInfo) {
         var _this = this;
@@ -100,6 +117,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the provided transfer
      * @param {XdccTransfer} xdccTransfer transfer instance
+     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
      */
     XdccClient.prototype.cancelTransfer = function (xdccTransfer) {
         var _this = this;
@@ -117,6 +135,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the transfer matching the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
+     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
      */
     XdccClient.prototype.cancelTransferByInfo = function (packInfo) {
         var _this = this;
@@ -131,6 +150,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the transfer at the specified index in the transfer pool
      * @param {number} transferId transfer pool index
+     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
      */
     XdccClient.prototype.cancelTransferById = function (transferId) {
         var _this = this;
@@ -145,13 +165,15 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Returns the list of transfers
+     * @returns {XdccTransfer} A promise for the list of transfers in the pool
      */
     XdccClient.prototype.listTransfers = function () {
         return Promise.resolve(this.transferPool);
     };
     /**
      * Removes the provided transfer instance from the list
-     * @param {XdccTransfer} xdccTransfer transfer instance
+     * @param {XdccTransfer} xdccTransfer The transfer instance
+     * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
      */
     XdccClient.prototype.removeTransfer = function (xdccTransfer) {
         var _this = this;
@@ -168,7 +190,8 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Removes the transfer at the specified index in the transfer pool
-     * @param {number} transferId transfer pool index
+     * @param {number} transferId The transfer pool index
+     * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
      */
     XdccClient.prototype.removeTransferById = function (transferId) {
         var _this = this;
@@ -182,8 +205,8 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Disconnects the IRC client
-     * @param message disconnection message
-     * @param callback function called after being disconnected
+     * @param message The disconnection message
+     * @param callback The function called after being disconnected
      */
     XdccClient.prototype.disconnect = function (message, callback) {
         var _this = this;
@@ -195,7 +218,7 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Handles when the client is fully registered on the IRC network
-     * @param {string} message registration message
+     * @param {string} message The registration message
      */
     XdccClient.prototype.registeredHandler = function (message) {
         var _this = this;
@@ -220,19 +243,19 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Handles CTCP Version messages
-     * @param {string} from CTCP emitter
-     * @param {string} to CTCP recipient
-     * @param {string} message raw CTCP message
+     * @param {string} from The CTCP emitter
+     * @param {string} to The CTCP recipient
+     * @param {string} message The raw CTCP message
      */
     XdccClient.prototype.versionHandler = function (from, to, message) {
         this.ctcp(from, 'normal', 'VERSION ' + version_1.version);
     };
     /**
      * Handles CTCP PrivMsg messages
-     * @param {string} from CTCP emitter
-     * @param {string} to CTCP recipient
-     * @param {string} text CTCP content
-     * @param {string} message raw CTCP message
+     * @param {string} from The CTCP emitter
+     * @param {string} to The CTCP recipient
+     * @param {string} text The CTCP content
+     * @param {string} message The raw CTCP message
      */
     XdccClient.prototype.privCtcpHandler = function (from, to, text, message) {
         var _this = this;
@@ -260,7 +283,7 @@ var XdccClient = /** @class */ (function (_super) {
             })
                 .then(function (transfers) {
                 if (transfers.length) {
-                    if (transfers[0].state === irc_xdcc_transfer_state_1.XdccTransferState.finished) {
+                    if (transfers[0].state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
                         return Promise.reject('transfer already finished');
                     }
                     return Promise.resolve(transfers[0]);
@@ -282,7 +305,6 @@ var XdccClient = /** @class */ (function (_super) {
                     transfer.location = _this.options.destPath
                         + (_this.options.destPath.substr(-1, 1) === separator ? '' : separator)
                         + transfer.fileName;
-                    transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.started;
                     transfer.ip = converter_1.converter.intToIp(xdccMessage.params[3]);
                     transfer.port = parseInt(xdccMessage.params[4], 10);
                     transfer.fileSize = parseInt(xdccMessage.params[5], 10);
@@ -304,10 +326,10 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Handles notice messages
-     * @param {string} from notice emitter
-     * @param {string} to notice recipient
-     * @param {string} text notice content
-     * @param {string} message raw notice message
+     * @param {string} from The notice emitter
+     * @param {string} to The notice recipient
+     * @param {string} text The notice content
+     * @param {string} message The raw notice message
      */
     XdccClient.prototype.noticeHandler = function (from, to, text, message) {
         var _this = this;
@@ -333,10 +355,10 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Handles a disconnection
-     * @param {string} nick disconnected nick
-     * @param {string} reason disconnection reason
-     * @param {string} channels emitting channels
-     * @param {string} message raw disconnection message
+     * @param {string} nick The disconnected nick
+     * @param {string} reason The disconnection reason
+     * @param {string} channels The emitting channels
+     * @param {string} message The raw disconnection message
      */
     XdccClient.prototype.disconnectedHandler = function (nick, reason, channels, message) {
         if (nick == this.nick) {
@@ -345,10 +367,10 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Handles topic messages (auto join channels mentioned in topics)
-     * @param {string} channel channel emitting the topic
-     * @param {string} topic topic content
-     * @param {string|null} nick topic's author
-     * @param {string} message raw topic message
+     * @param {string} channel The channel emitting the topic
+     * @param {string} topic The topic content
+     * @param {string|null} nick The topic's author
+     * @param {string} message The raw topic message
      */
     XdccClient.prototype.topicHandler = function (channel, topic, nick, message) {
         var _this = this;
@@ -361,6 +383,7 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Resume pooled transfers
+     * @returns {XdccTransfer} The resumed XDCC transfers
      */
     XdccClient.prototype.resume = function () {
         var _this = this;
@@ -368,18 +391,21 @@ var XdccClient = /** @class */ (function (_super) {
             .then(function (transfers) { return Promise.all(transfers.map(function (transfer) { return _this.start(transfer); })); });
     };
     /**
-     * Cancels all transfers
+     * Cancels all transfers and clears the pool
+     * @returns {Promise<void>} An empty promise
      */
     XdccClient.prototype.clear = function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.transferPool.forEach(function (transfer) { return _this.cancel(transfer); });
+            _this.transferPool = [];
             return resolve();
         });
     };
     /**
      * Searches matching transfers
-     * @param {XdccTransfer} xdccTransfer the transfer info to filter the pool with
+     * @param {XdccTransfer} xdccTransfer The transfer info to filter the pool with
+     * @returns {Promise<XdccTransfer[]>} A promise for matching XDCC transfers
      */
     XdccClient.prototype.search = function (needle) {
         return Promise.resolve(this.transferPool.filter(function (transfer) {
@@ -396,9 +422,11 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Creates a transfer instance based on the specified xdcc pack info
      * @param packInfo
+     * @returns {Promise<XdccTransfer[]>} The created XDCC transfers
      */
     XdccClient.prototype.createTransfer = function (packInfo) {
         var transfer = new irc_xdcc_transfer_1.XdccTransfer(packInfo);
+        transfer.server = this.server;
         this.lastIndex++;
         transfer.transferId = this.lastIndex;
         this.transferPool.push(transfer);
@@ -406,7 +434,8 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Verifies if the destination file already exists and/or needs to be resume for the specified transfer
-     * @param {XdccTransfer} transfer the transfer to verify
+     * @param {XdccTransfer} transfer The transfer to verify
+     * @returns {Promise<XdccTransfer[]>} The inputed XDCC transfers
      */
     XdccClient.prototype.validateTransferDestination = function (transfer) {
         var _this = this;
@@ -445,12 +474,13 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Downloads the file from the serving bot fro the specified transfer
-     * @param {XdccTransfer} transfer the transfer to download
+     * @param {XdccTransfer} transfer The transfer to download
+     * @returns {Promise<XdccTransfer[]>} The inputed XDCC transfers
      */
     XdccClient.prototype.downloadFile = function (transfer) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.finished || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.cancelled) {
+            if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.cancelled) {
                 return reject('transfer aborted: transfer already finished or cancelled');
             }
             var partLocation = transfer.location + '.part';
@@ -459,20 +489,22 @@ var XdccClient = /** @class */ (function (_super) {
             var received = transfer.resumePosition || 0;
             var ack = transfer.resumePosition || 0;
             var socket;
-            if (_this.options.closeConnectionOnDisconnect) {
-                var disconnectedHandler = function (nick, reason, channels, message) {
-                    if (nick === _this.nick) {
-                        writeStream.end();
-                        socket && socket.destroy();
-                        transfer.error = 'transfer aborted: irc client disconnected';
-                        return reject('transfer aborted: irc client disconnected');
-                    }
-                };
-                _this.once('quit', disconnectedHandler);
-                _this.once('kill', disconnectedHandler);
+            var disconnectedHandler = function (nick, reason, channels, message) {
+                if (nick === _this.nick) {
+                    writeStream.end();
+                    socket && socket.destroy();
+                    transfer.error = 'transfer aborted: irc client disconnected';
+                    return reject('transfer aborted: irc client disconnected');
+                }
+            };
+            if (_this.options.closeConnectionOnCompleted) {
+                _this.once(ircXdccEvents.ircQuit, disconnectedHandler);
+                _this.once(ircXdccEvents.ircKill, disconnectedHandler);
             }
             writeStream.on('open', function () {
                 socket = net.createConnection(transfer.port, transfer.ip, function () {
+                    transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.started;
+                    _this.emit(ircXdccEvents.xdccStarted, transfer);
                     transfer.progressIntervalId = setInterval(function () {
                         _this.emit(ircXdccEvents.xdccProgress, transfer, received);
                     }, _this.options.progressInterval * 1000);
@@ -498,7 +530,7 @@ var XdccClient = /** @class */ (function (_super) {
                     socket.write(sendBuffer);
                     writeStream.write(data);
                 });
-                socket.on('end', function () {
+                var socketEndHandler = function (socketError) {
                     var duration = transfer.startedAt ? process.hrtime(transfer.startedAt) : [0, 0];
                     var secondsDelta = (duration[0] * 1e9 + duration[1]) / 1e9;
                     var speed = transfer.fileSize / secondsDelta;
@@ -506,16 +538,24 @@ var XdccClient = /** @class */ (function (_super) {
                     transfer.speed = speed;
                     writeStream.end();
                     socket.destroy();
+                    if (transfer.progressIntervalId) {
+                        clearInterval(transfer.progressIntervalId);
+                        transfer.progressIntervalId = null;
+                    }
+                    if (_this.options.closeConnectionOnCompleted) {
+                        if (_this.rawListeners(ircXdccEvents.ircQuit).indexOf(disconnectedHandler) > -1) {
+                            _this.removeListener(ircXdccEvents.ircQuit, disconnectedHandler);
+                        }
+                        if (_this.rawListeners(ircXdccEvents.ircKill).indexOf(disconnectedHandler) > -1) {
+                            _this.removeListener(ircXdccEvents.ircKill, disconnectedHandler);
+                        }
+                    }
                     // Connection closed
                     if (received == transfer.fileSize) {
                         // download complete
                         fs_promise_1.renameP(transfer.location + '.part', transfer.location)
                             .then(function () {
-                            transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.finished;
-                            if (transfer.progressIntervalId) {
-                                clearInterval(transfer.progressIntervalId);
-                                transfer.progressIntervalId = null;
-                            }
+                            transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.completed;
                             _this.emit(ircXdccEvents.xdccComplete, transfer);
                             resolve(transfer);
                         })
@@ -524,31 +564,33 @@ var XdccClient = /** @class */ (function (_super) {
                             reject(transfer);
                         });
                     }
-                    else if (received != transfer.fileSize && transfer.state !== irc_xdcc_transfer_state_1.XdccTransferState.finished) {
+                    else if (received != transfer.fileSize && transfer.state !== irc_xdcc_transfer_state_1.XdccTransferState.completed) {
                         // download incomplete
-                        transfer.error = 'server unexpected closed connection';
+                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.cancelled; // create a "failed" status?
+                        if (!socketError) {
+                            transfer.error = 'server unexpected closed connection';
+                        }
+                        else {
+                            transfer.error = socketError;
+                        }
                         _this.emit(ircXdccEvents.xdccDlError, transfer);
                         reject(transfer);
                     }
-                    else if (received != transfer.fileSize && transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.finished) {
+                    else if (received != transfer.fileSize && transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
                         // download aborted
-                        transfer.error = 'server closed connection, download canceled';
+                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.cancelled; // create a "failed" status?
+                        if (!socketError) {
+                            transfer.error = 'server closed connection, download canceled';
+                        }
+                        else {
+                            transfer.error = socketError;
+                        }
                         _this.emit(ircXdccEvents.xdccDlError, transfer);
                         reject(transfer);
                     }
-                });
-                socket.on('error', function (err) {
-                    transfer.duration = transfer.startedAt ? process.hrtime(transfer.startedAt) : [0, 0];
-                    // Close writeStream
-                    writeStream.end();
-                    transfer.error = err;
-                    // Send error message
-                    _this.emit(ircXdccEvents.xdccDlError, transfer);
-                    // Destroy the connection
-                    socket.destroy();
-                    reject(transfer);
-                });
-                _this.emit(ircXdccEvents.xdccStarted, transfer);
+                };
+                socket.on('end', socketEndHandler);
+                socket.on('error', socketEndHandler);
             });
             writeStream.on('error', function (err) {
                 writeStream.end();
@@ -561,7 +603,8 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Sends the start signal to the server bot for the specified transfer
-     * @param {XdccTransfer} transfer the transfer to start
+     * @param {XdccTransfer} transfer The transfer to start
+     * @returns {Promise<XdccTransfer[]>} The stater XDCC transfers
      */
     XdccClient.prototype.start = function (transfer) {
         var _this = this;
@@ -582,10 +625,11 @@ var XdccClient = /** @class */ (function (_super) {
     };
     /**
      * Sends the cancel signal to server bot for the specified transfer
-     * @param {XdccTransfer} transfer teh transfer to cancel
+     * @param {XdccTransfer} transfer The transfer to cancel
+     * @returns {Promise<XdccTransfer[]>} The cancelled XDCC transfers
      */
     XdccClient.prototype.cancel = function (transfer) {
-        if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.cancelled || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.finished) {
+        if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.cancelled || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
             return Promise.resolve(transfer);
         }
         if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.queued) {

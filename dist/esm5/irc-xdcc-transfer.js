@@ -15,6 +15,10 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var irc_xdcc_pack_info_1 = require("./irc-xdcc-pack-info");
 var irc_xdcc_transfer_state_1 = require("./irc-xdcc-transfer-state");
+/**
+ * Class representing an XDCC transfer.
+ * @extends XdccPackInfo
+ */
 var XdccTransfer = /** @class */ (function (_super) {
     __extends(XdccTransfer, _super);
     function XdccTransfer(packInfo) {
@@ -31,7 +35,13 @@ var XdccTransfer = /** @class */ (function (_super) {
             _this.botNick = packInfo.botNick;
             _this.packId = packInfo.packId;
             _this.server = packInfo.server;
+            _this.fileName = packInfo.fileName;
         }
+        _this.receivedBytes = 0;
+        _this.resumePosition = 0;
+        _this.progress = 0;
+        _this.speed = 0;
+        _this.params = [];
         return _this;
     }
     return XdccTransfer;

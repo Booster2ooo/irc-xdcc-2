@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Class representing an XDCC message.
+ */
 var XdccMessage = /** @class */ (function () {
     function XdccMessage() {
         /**
-         * @property {string[]} params parsed ctcp message
+         * @property {string[]} params The parsed CTCP message
          */
         this.params = [];
     }

@@ -2,6 +2,10 @@ import { XdccPackInfo } from "./irc-xdcc-pack-info";
 import { XdccTransferState } from "./irc-xdcc-transfer-state";
 import { XdccClient } from "./irc-xdcc-2";
 
+/**
+ * Class representing an XDCC transfer.
+ * @extends XdccPackInfo
+ */
 export class XdccTransfer extends XdccPackInfo {
 
 	/**
@@ -48,11 +52,6 @@ export class XdccTransfer extends XdccPackInfo {
 	 * @property {number=} progressIntervalId interval id for the task handling the transfer progression event firing
 	 */
 	progressIntervalId: NodeJS.Timeout|number|undefined|null;
-
-	/**
-	 * @property {string} fileName transfered file name
-	 */
-	fileName: string|undefined|null;
 
 	/**
 	 * @property {string} lastCommand last xdcc command received
@@ -110,7 +109,13 @@ export class XdccTransfer extends XdccPackInfo {
 			this.botNick = packInfo.botNick;
 			this.packId = packInfo.packId;
 			this.server = packInfo.server;
+			this.fileName = packInfo.fileName;
 		}
+		this.receivedBytes = 0;
+		this.resumePosition = 0;
+		this.progress = 0;
+		this.speed = 0;
+		this.params = [];
 	}
 
 }

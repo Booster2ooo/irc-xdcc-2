@@ -1,1 +1,1 @@
-{"version":3,"file":"irc-xdcc-message.js","sourceRoot":"","sources":["../../src/irc-xdcc-message.ts"],"names":[],"mappings":";;AAAA,MAAa,WAAW;IAAxB;QAiBC;;WAEG;QACH,WAAM,GAAa,EAAE,CAAC;IAEvB,CAAC;CAAA;AAtBD,kCAsBC"}
+{"version":3,"file":"irc-xdcc-message.js","sourceRoot":"","sources":["../../src/irc-xdcc-message.ts"],"names":[],"mappings":";;AAAA;;GAEG;AACH,MAAa,WAAW;IAAxB;QAiBC;;WAEG;QACH,WAAM,GAAa,EAAE,CAAC;IAEvB,CAAC;CAAA;AAtBD,kCAsBC"}

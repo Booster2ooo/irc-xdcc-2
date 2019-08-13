@@ -1,7 +1,18 @@
 {
   "name": "irc-xdcc-2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "irc-xdcc-2 is a node-irc promises based extension providing xdcc handlers.",
+  "keywords:": [
+    "irc",
+    "dcc",
+    "xdcc",
+    "bot",
+    "download",
+    "iroffer",
+    "dinoex",
+    "fserver",
+    "fileserver"
+  ],
   "main": "./dist/esm5/index.js",
   "module": "./dist/esm5/index.js",
   "es2015": "./dist/esm2015/index.js",
@@ -11,8 +22,9 @@
     "postversion": "node tools/update-in-app-version",
     "prebuild": "npm run cleanup",
     "prepare": "npm run build",
-    "build": "tsc && tsc --target es2019 --outDir dist/esm2015",
-    "tsc": "tsc",
+    "build": "tsc && tsc --target es2019 --outDir dist/esm2015 && npm run doc",
+	"tsc": "tsc",
+	"doc": "typedoc --out doc/ --exclude !(irc-*.ts)  src/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

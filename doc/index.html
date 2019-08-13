@@ -1,0 +1,396 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>irc-xdcc-2</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">irc-xdcc-2</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> irc-xdcc-2</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#irc-xdcc-2" id="irc-xdcc-2" style="color: inherit; text-decoration: none;">
+					<h1>irc-xdcc-2</h1>
+				</a>
+				<a href="#disclamer" id="disclamer" style="color: inherit; text-decoration: none;">
+					<h2>Disclamer</h2>
+				</a>
+				<p>This module does not intend to facilitate illegal files transfer. The author may not be taken responsible for any copyright infringement or illegal uses.</p>
+				<a href="#introduction" id="introduction" style="color: inherit; text-decoration: none;">
+					<h2>Introduction</h2>
+				</a>
+				<p>irc-xdcc-2 is a <a href="https://github.com/martynsmith/node-irc">node-irc module</a> promises based extension providing xdcc handlers with Typescript support.</p>
+				<p>It&#39;s a recode of <a href="https://github.com/Booster2ooo/irc-xdcc">irc-xdcc</a> which is basically a recode of Indysama <a href="https://github.com/Indysama/node-xdcc">node-xdcc</a> / DaVarga <a href="https://github.com/DaVarga/node-axdcc/">node-axdcc</a>.</p>
+				<a href="#options" id="options" style="color: inherit; text-decoration: none;">
+					<h2>Options</h2>
+				</a>
+				<p>irc-xdcc-2 provide an extension of the irc module. It extends the <a href="https://node-irc.readthedocs.org/en/latest/API.html#client">available options</a> with the following:</p>
+				<pre><code class="language-javascript">{
+    <span class="hljs-attr">server</span>: <span class="hljs-string">'irc.server.org'</span>
+  , <span class="hljs-attr">nick</span>: <span class="hljs-string">'myCoolNick'</span>
+  , <span class="hljs-attr">progressInterval</span>: <span class="hljs-number">1</span> <span class="hljs-comment">// [Number(int)] Interval (in seconds) for the progress update event (xdcc-progress) -- Default: 1</span>
+  , <span class="hljs-attr">destPath</span>: <span class="hljs-string">'/path/to/destination'</span> <span class="hljs-comment">// [String] The destination path for downloads -- Default: module lib path + /downloads -&gt; path.join(__dirname, 'downloads')</span>
+  , <span class="hljs-attr">resume</span>: <span class="hljs-literal">true</span> <span class="hljs-comment">// [Boolean] Allow download to be resumed -- Default: true</span>
+  , <span class="hljs-attr">acceptUnpooled</span>: <span class="hljs-literal">false</span> <span class="hljs-comment">// [Boolean] Accept unrequested DCC download (accept a DCC download that doesn't match any DCC instance found in _transfer pool array -- Default: false</span>
+  , <span class="hljs-attr">closeConnectionOnCompleted</span>: <span class="hljs-literal">true</span> <span class="hljs-comment">// [Boolean] Defines if active sockets should be closed if the IRC client get disconnected or killed -- Default: true</span>
+  , <span class="hljs-attr">method</span>: <span class="hljs-string">'say'</span> <span class="hljs-comment">// [String] Defines the method to trigger xdcc bots, either 'say' or 'ctcp' (you can also use 'msg' which is equivalent to 'say') -- Default: 'say'</span>
+  , <span class="hljs-attr">sendCommand</span>: <span class="hljs-string">'XDCC SEND'</span> <span class="hljs-comment">// [String] the command sent to the bot to initiate the xdcc transfert -- Default: 'XDCC SEND'</span>
+  , <span class="hljs-attr">cancelCommand</span>: <span class="hljs-string">'XDCC CANCEL'</span> <span class="hljs-comment">// [String] the command sent to the bot to cancel the xdcc transfert -- Default: 'XDCC CANCEL'</span>
+  , <span class="hljs-attr">removeCommand</span>: <span class="hljs-string">'XDCC REMOVE'</span> <span class="hljs-comment">// [String] the command sent to the bot to cancel a queued transfert -- Default: 'XDCC REMOVE'</span>
+  , <span class="hljs-attr">joinTopicChans</span>: <span class="hljs-literal">true</span> <span class="hljs-comment">// [Boolean] automatically rejoin channels mentioned in the topic -- Default: true</span>
+  , <span class="hljs-attr">queuedParser</span>:  <span class="hljs-regexp">/queue for pack #?(\d+) \("(\.+)"\) in position/</span> <span class="hljs-comment">// [RegExp] regexp to parse queue notices/messages -- Default:  /queue for pack #?(\d+) \("(\.+)"\) in position/</span>
+  , <span class="hljs-attr">sendParser</span>: <span class="hljs-regexp">/sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i</span> <span class="hljs-comment">// [RegExp] regexp to parse send notices/messages -- Default:  /sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i</span>
+}</code></pre>
+				<a href="#constructor" id="constructor" style="color: inherit; text-decoration: none;">
+					<h2>Constructor</h2>
+				</a>
+				<p>Instead of using the new irc.Client(), use XdccClient insteead, server and nick arguments moved to options:</p>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> ircXdcc2.XdccClient(options);</code></pre>
+				<p>Sample:</p>
+				<pre><code class="language-javascript"><span class="hljs-comment">// load irc-xdcc module</span>
+<span class="hljs-keyword">const</span> ircXdcc2 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'irc-xdcc-2'</span>)
+<span class="hljs-comment">// set options object</span>
+<span class="hljs-keyword">const</span> ircOptions = {
+    <span class="hljs-attr">server</span>: <span class="hljs-string">'irc.myserver.com'</span>
+  , <span class="hljs-attr">nick</span>: <span class="hljs-string">'myBotNick'</span>
+  , <span class="hljs-attr">userName</span>: <span class="hljs-string">'ircClient'</span>
+  , <span class="hljs-attr">realName</span>: <span class="hljs-string">'irc Client'</span>
+  , <span class="hljs-attr">port</span>: <span class="hljs-number">6697</span>
+  , <span class="hljs-attr">autoRejoin</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">autoConnect</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">channels</span>: [ <span class="hljs-string">'#xdcc'</span>, <span class="hljs-string">'#xdcc-chat'</span> ]
+  , <span class="hljs-attr">secure</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">selfSigned</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">certExpired</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">stripColors</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">encoding</span>: <span class="hljs-string">'UTF-8'</span>
+  <span class="hljs-comment">// xdcc specific options</span>
+  , <span class="hljs-attr">progressInterval</span>: <span class="hljs-number">5</span>
+  , <span class="hljs-attr">destPath</span>: <span class="hljs-string">'./dls'</span>
+  , <span class="hljs-attr">resume</span>: <span class="hljs-literal">false</span>
+  , <span class="hljs-attr">acceptUnpooled</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">closeConnectionOnCompleted</span>: <span class="hljs-literal">false</span>
+};
+<span class="hljs-comment">// launch the client</span>
+<span class="hljs-keyword">const</span> client = ircXdcc2.XdccClient(ircOptions);
+<span class="hljs-comment">// listen for events and do things</span>
+client.addListener(<span class="hljs-string">'registered'</span>, () =&gt; { <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'bot connected'</span>); });
+client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; { 
+    client.addTransfer({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'123'</span>})
+        .then(<span class="hljs-function">(<span class="hljs-params">transfer</span>) =&gt;</span> {})
+        .catch(<span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> {
+            <span class="hljs-keyword">if</span>(err.code) {
+                <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'Error '</span> + err.code + <span class="hljs-string">': '</span> +  err.message);
+            }
+            <span class="hljs-keyword">else</span> {
+                <span class="hljs-built_in">console</span>.error(err);
+            }
+        });    
+});</code></pre>
+				<a href="#methods" id="methods" style="color: inherit; text-decoration: none;">
+					<h2>Methods</h2>
+				</a>
+				<p>irc-xdcc module extends irc.Client methods with a set of promises:</p>
+				<p><strong>addTransfer(packInfo)</strong></p>
+				<p>Add a transfer to the pool and starts xdcc transfer for the provided pack infos (e.g.: { botNick: &#39;xdccBot&#39;, packId: 1 } ) where botNick is the xdcc server bot nick and packId, the required pack id.</p>
+				<pre><code class="language-javascript">botInstance.addTransfer({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'1'</span>})
+    .then(<span class="hljs-function">(<span class="hljs-params">transfer</span>) =&gt;</span> {})
+    .catch(<span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> {
+        <span class="hljs-keyword">if</span>(err.code) {
+            <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'Error '</span> + err.code + <span class="hljs-string">': '</span> +  err.message);
+        }
+        <span class="hljs-keyword">else</span> {
+            <span class="hljs-built_in">console</span>.error(err);
+        }
+    });</code></pre>
+				<p><strong>cancelTransfer(transfer)</strong></p>
+				<p>Cancel DCC transfer.</p>
+				<pre><code class="language-javascript">botInstance.cancelTransfer(transfer)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<p><strong>cancelTransferByInfo(packInfo)</strong></p>
+				<p>Cancel DCC transfer instances matching packInfo ({ botNick: &#39;xdccBot&#39;, packId: 1 }).</p>
+				<pre><code class="language-javascript">botInstance.cancelTransferByInfo({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'1'</span>})
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<p><strong>cancelTransferById(poolId)</strong></p>
+				<p>Cancel DCC transfer for the specified transfer ID (transfer.transferId).</p>
+				<pre><code class="language-javascript">botInstance.cancelTransferById(<span class="hljs-number">2</span>)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<p><strong>listTransfers()</strong></p>
+				<p>Returns the transfer pool (where transfers are stored).</p>
+				<pre><code class="language-javascript">botInstance.listTransfers()
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<p><strong>removeTransfer(transfer)</strong></p>
+				<p>Cancel xdcc transfer and remove transfer from pool.</p>
+				<pre><code class="language-javascript">botInstance.removeTransfer(transfer)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<p><strong>removeTransferById(poolId)</strong></p>
+				<p>Cancel xdcc transfer and remove transfer from pool using its id.</p>
+				<pre><code class="language-javascript">botInstance.removeTransferById(<span class="hljs-number">1</span>)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<p><strong>start(transfer)</strong></p>
+				<p>Sends the start signal to the server bot for the specified transfer.</p>
+				<pre><code class="language-javascript">botInstance.start(transfer)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<p><strong>cancel(transfer)</strong></p>
+				<p>Sends the cancel signal to server bot for the specified transfer.</p>
+				<pre><code class="language-javascript">botInstance.start(transfer)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
+    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">console</span>.error(err);
+    });</code></pre>
+				<a href="#events" id="events" style="color: inherit; text-decoration: none;">
+					<h2>Events</h2>
+				</a>
+				<p>Along with extending irc module option and methods, some events have been added too:</p>
+				<p><strong>&#39;connected&#39;</strong></p>
+				<pre><code>() =&gt; {}</code></pre><p>Event fired when the irc client is connected and joined all channels specified in the options</p>
+				<p><strong>&#39;xdcc-error&#39;</strong></p>
+				<pre><code>(<span class="hljs-keyword">error</span>) =&gt; {}</code></pre><p>Event fired when a method call is erroneous</p>
+				<p><strong>&#39;xdcc-created&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC instance has been created (and added to the transfer pool) (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-requested&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when the XDCC SEND command has been sent (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-removed&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC instance has been removed from transfer pool (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-started&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when the file transfer begins (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-queued&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a queue notice has been recieved from the server (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-complete&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer has been completed (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-canceled&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer has been canceled (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-connect&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer starts (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-progress&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired every <em>option.progressInterval</em> seconds during DCC transfer providing the <em>received</em> bytes (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>&#39;xdcc-dlerror&#39;</strong></p>
+				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer encounter an error (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<a href="#xdcc-transfer" id="xdcc-transfer" style="color: inherit; text-decoration: none;">
+					<h2>XDCC transfer</h2>
+				</a>
+				<p>An XDCC transfer is an object containing pieces of information regarding a specific xdcc transfer.</p>
+				<p><strong>XdccTransfer</strong></p>
+				<pre><code class="language-javascript">{
+    botNick <span class="hljs-comment">// xdcc server bot nick</span>
+  , packId <span class="hljs-comment">// xdcc pack id</span>
+  , server <span class="hljs-comment">// irc server</span>
+  , state <span class="hljs-comment">// state of the transfer (see below)</span>
+  , transferId <span class="hljs-comment">// id of the instance in the internal transfer pool</span>
+  , resumePosition <span class="hljs-comment">// used to store resume position when an incomplete file is found in the destPath</span>
+  , receivedBytes <span class="hljs-comment">// number of bytes received</span>
+  , progress <span class="hljs-comment">// transfer progression percentage</span>
+  , speed <span class="hljs-comment">// average transfer speed (bytes per second)</span>
+  , startedAt <span class="hljs-comment">// process.hrtime() value when the download has been started</span>
+  , duration <span class="hljs-comment">// process.hrtime(startedAt) value when the download has been completed</span>
+  , progressIntervalId <span class="hljs-comment">// progress event setInterval id </span>
+  , fileName <span class="hljs-comment">// xdcc file name</span>
+  , <span class="hljs-attr">lastCommand</span>: <span class="hljs-comment">// last xdcc command recieved from the server (SEND or ACCEPT)</span>
+  , <span class="hljs-attr">ip</span>: <span class="hljs-comment">// server's ip address</span>
+  , port <span class="hljs-comment">// server's socket port</span>
+  , <span class="hljs-attr">fileSize</span>: <span class="hljs-comment">// xdcc file size</span>
+  , <span class="hljs-attr">location</span>: <span class="hljs-comment">// file destination</span>
+  , sender <span class="hljs-comment">// ctcp message emitter (= botNick)</span>
+  , target <span class="hljs-comment">// ctcp message target (= ircClient nick)</span>
+  , message <span class="hljs-comment">// ctcp message</span>
+  , params <span class="hljs-comment">// ctcp parsed parts</span>
+  , error <span class="hljs-comment">// error message/infos</span>
+}</code></pre>
+				<p><strong>XdccTransferState</strong></p>
+				<pre><code class="language-javascript">{
+    cancelled = <span class="hljs-number">-1</span>,
+    pending = <span class="hljs-number">0</span>,
+    requested = <span class="hljs-number">1</span>,
+    queued = <span class="hljs-number">2</span>,
+    started = <span class="hljs-number">3</span>,
+    completed = <span class="hljs-number">4</span>
+}</code></pre>
+				<a href="#thanks" id="thanks" style="color: inherit; text-decoration: none;">
+					<h2>Thanks</h2>
+				</a>
+				<ul>
+					<li><a href="https://github.com/Indysama">Indysama</a> for <a href="https://github.com/Indysama/node-xdcc">node-xdcc</a></li>
+					<li><a href="https://github.com/DaVarga">DaVarga</a> for  <a href="https://github.com/DaVarga/node-axdcc/">node-axdcc</a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_2_.html">"irc-<wbr>xdcc-<wbr>2"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_events_.html">"irc-<wbr>xdcc-<wbr>events"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_message_.html">"irc-<wbr>xdcc-<wbr>message"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_options_.html">"irc-<wbr>xdcc-<wbr>options"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_pack_info_.html">"irc-<wbr>xdcc-<wbr>pack-<wbr>info"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_transfer_.html">"irc-<wbr>xdcc-<wbr>transfer"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_transfer_state_.html">"irc-<wbr>xdcc-<wbr>transfer-<wbr>state"</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>

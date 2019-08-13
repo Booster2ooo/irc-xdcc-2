@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Class representing an XDCC message.
+ */
 class XdccMessage {
     constructor() {
         /**
-         * @property {string[]} params parsed ctcp message
+         * @property {string[]} params The parsed CTCP message
          */
         this.params = [];
     }
