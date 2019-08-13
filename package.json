@@ -18,13 +18,13 @@
   "es2015": "./dist/esm2015/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
-    "cleanup": "shx rm -rf dist",
+    "cleanup": "shx rm -rf dist && shx rm -rf doc",
     "postversion": "node tools/update-in-app-version",
     "prebuild": "npm run cleanup",
     "prepare": "npm run build",
     "build": "tsc && tsc --target es2019 --outDir dist/esm2015 && npm run doc",
 	"tsc": "tsc",
-	"doc": "typedoc --out doc/ --exclude !(irc-*.ts)  src/",
+	"doc": "typedoc --options ./typedoc.json src/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

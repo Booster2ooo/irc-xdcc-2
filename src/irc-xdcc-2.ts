@@ -6,7 +6,7 @@ import { statP, renameP, unlinkP } from './fs-promise';
 //import { promises as fsp } from 'fs'; // experimental ...
 import * as ircXdccEvents from './irc-xdcc-events';
 import { XdccTransfer } from "./irc-xdcc-transfer";
-import { XdccClientOptions } from "./irc-xdcc-options";
+import { XdccClientOptions } from "./irc-xdcc-client-options";
 import { XdccPackInfo } from "./irc-xdcc-pack-info";
 import { XdccTransferState } from "./irc-xdcc-transfer-state";
 import { XdccMessage } from './irc-xdcc-message';
