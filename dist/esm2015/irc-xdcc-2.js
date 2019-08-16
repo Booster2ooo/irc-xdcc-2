@@ -194,7 +194,7 @@ class XdccClient extends irc_1.Client {
         this.emit(irc_xdcc_events_1.XdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
         this.clear()
             .catch((err) => this.emit(irc_xdcc_events_1.XdccEvents.ircError, err))
-            .then(() => irc_1.Client.disconnect.call(this, message, callback));
+            .then(() => this.disconnect.call(this, message, callback));
     }
     /**
      * Handles when the client is fully registered on the IRC network
@@ -458,6 +458,7 @@ class XdccClient extends irc_1.Client {
             .then((stats) => {
             if (stats.isFile() && stats.size === transfer.fileSize) {
                 transfer.error = 'file with the same size already exists';
+                transfer.progress = 100;
                 this.cancel(transfer);
                 return Promise.reject(new irc_xdcc_error_1.XdccError('validateTransferDestination', transfer.error, transfer));
             }
@@ -471,6 +472,7 @@ class XdccClient extends irc_1.Client {
                 return fs_promise_1.renameP(partLocation, transfer.location)
                     .then(() => {
                     transfer.error = 'file with the same size already exists';
+                    transfer.progress = 100;
                     this.cancel(transfer);
                     return Promise.reject(new irc_xdcc_error_1.XdccError('validateTransferDestination', transfer.error, transfer));
                 });
@@ -640,11 +642,12 @@ class XdccClient extends irc_1.Client {
             const interalErrorHandler = (message) => {
                 if (message.command == 'err_bannedfromchan' && message.args[1].toLowerCase() === transfer.channel.toLowerCase()) {
                     this.removeListener(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
+                    this.removeListener(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
                     reject(transfer);
                 }
             };
             this.once(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
-            this.once(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
+            this.on(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
             this.join(transfer.channel);
         });
     }

@@ -228,7 +228,7 @@ var XdccClient = /** @class */ (function (_super) {
         this.emit(irc_xdcc_events_1.XdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
         this.clear()
             .catch(function (err) { return _this.emit(irc_xdcc_events_1.XdccEvents.ircError, err); })
-            .then(function () { return irc_1.Client.disconnect.call(_this, message, callback); });
+            .then(function () { return _this.disconnect.call(_this, message, callback); });
     };
     /**
      * Handles when the client is fully registered on the IRC network
@@ -502,6 +502,7 @@ var XdccClient = /** @class */ (function (_super) {
             .then(function (stats) {
             if (stats.isFile() && stats.size === transfer.fileSize) {
                 transfer.error = 'file with the same size already exists';
+                transfer.progress = 100;
                 _this.cancel(transfer);
                 return Promise.reject(new irc_xdcc_error_1.XdccError('validateTransferDestination', transfer.error, transfer));
             }
@@ -515,6 +516,7 @@ var XdccClient = /** @class */ (function (_super) {
                 return fs_promise_1.renameP(partLocation, transfer.location)
                     .then(function () {
                     transfer.error = 'file with the same size already exists';
+                    transfer.progress = 100;
                     _this.cancel(transfer);
                     return Promise.reject(new irc_xdcc_error_1.XdccError('validateTransferDestination', transfer.error, transfer));
                 });
@@ -686,11 +688,12 @@ var XdccClient = /** @class */ (function (_super) {
             var interalErrorHandler = function (message) {
                 if (message.command == 'err_bannedfromchan' && message.args[1].toLowerCase() === transfer.channel.toLowerCase()) {
                     _this.removeListener(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
+                    _this.removeListener(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
                     reject(transfer);
                 }
             };
             _this.once(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
-            _this.once(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
+            _this.on(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
             _this.join(transfer.channel);
         });
     };

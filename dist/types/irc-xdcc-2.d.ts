@@ -74,7 +74,7 @@ export declare class XdccClient extends Client {
      * @param message The disconnection message
      * @param callback The function called after being disconnected
      */
-    disconnect(message: string, callback: Function): void;
+    disconnect(message?: string, callback?: Function): void;
     /**
      * Handles when the client is fully registered on the IRC network
      * @param {string} message The registration message

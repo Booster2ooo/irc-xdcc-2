@@ -221,12 +221,12 @@ export class XdccClient extends Client {
 	 * @param message The disconnection message
 	 * @param callback The function called after being disconnected
 	 */
-	disconnect(message: string, callback: Function): void {
+	disconnect(message?: string, callback?: Function): void {
 		message = message || version;
 		this.emit(XdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
 		this.clear()
 			.catch((err) => this.emit(XdccEvents.ircError, err))
-			.then(() => Client.disconnect.call(this, message, callback))
+			.then(() => this.disconnect.call(this, message, callback))
 			;		
 	}
 
@@ -513,6 +513,7 @@ export class XdccClient extends Client {
 			.then((stats: fs.Stats) => {
 				if (stats.isFile() && stats.size === transfer.fileSize) {
 					transfer.error = 'file with the same size already exists';
+					transfer.progress = 100;
 					this.cancel(transfer);
 					return Promise.reject(new XdccError('validateTransferDestination', transfer.error, transfer));
 				}
@@ -526,6 +527,7 @@ export class XdccClient extends Client {
 					return renameP(partLocation, transfer.location as fs.PathLike)
 						.then(() => {
 							transfer.error = 'file with the same size already exists';
+							transfer.progress = 100;
 							this.cancel(transfer);
 							return Promise.reject(new XdccError('validateTransferDestination', transfer.error, transfer));
 						});
@@ -697,11 +699,12 @@ export class XdccClient extends Client {
 			const interalErrorHandler = (message: any) => {
 				if (message.command == 'err_bannedfromchan' && message.args[1].toLowerCase() === (transfer.channel as string).toLowerCase()) {
 					this.removeListener(XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
+					this.removeListener(XdccEvents.ircError, interalErrorHandler);
 					reject(transfer);
 				}
 			};
 			this.once(XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
-			this.once(XdccEvents.ircError, interalErrorHandler);
+			this.on(XdccEvents.ircError, interalErrorHandler);
 			this.join(transfer.channel);
 		});
 	}
