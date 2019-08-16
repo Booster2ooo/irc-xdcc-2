@@ -70,7 +70,7 @@ export declare class XdccClient extends Client {
      */
     removeTransferById(transferId: number): Promise<XdccTransfer>;
     /**
-     * Disconnects the IRC client
+     * Disconnects the IRC client and clears the transfer pool
      * @param message The disconnection message
      * @param callback The function called after being disconnected
      */

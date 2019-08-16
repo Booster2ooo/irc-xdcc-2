@@ -1,4 +1,4 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.version = 'irc-xdcc-2 v1.0.3 - a Node.js xdcc client';
+exports.version = 'irc-xdcc-2 v1.0.5 - a Node.js xdcc client';
 //# sourceMappingURL=version.js.map

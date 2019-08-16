@@ -218,7 +218,7 @@ var XdccClient = /** @class */ (function (_super) {
         });
     };
     /**
-     * Disconnects the IRC client
+     * Disconnects the IRC client and clears the transfer pool
      * @param message The disconnection message
      * @param callback The function called after being disconnected
      */
@@ -228,7 +228,7 @@ var XdccClient = /** @class */ (function (_super) {
         this.emit(irc_xdcc_events_1.XdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
         this.clear()
             .catch(function (err) { return _this.emit(irc_xdcc_events_1.XdccEvents.ircError, err); })
-            .then(function () { return _this.disconnect.call(_this, message, callback); });
+            .then(function () { return irc_1.Client.prototype.disconnect.call(_this, message, callback); });
     };
     /**
      * Handles when the client is fully registered on the IRC network
@@ -253,7 +253,15 @@ var XdccClient = /** @class */ (function (_super) {
             });*/
             return _this.resume();
         })
-            .catch(function (err) { return _this.emit(irc_xdcc_events_1.XdccEvents.ircError, err); });
+            .catch(function (err) {
+            if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                var xdccError = new irc_xdcc_error_1.XdccError('registeredHandler', 'unhandled error', null, err, message);
+                _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
+            }
+            else {
+                _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, err);
+            }
+        });
     };
     /**
      * Handles CTCP Version messages
@@ -451,11 +459,7 @@ var XdccClient = /** @class */ (function (_super) {
      */
     XdccClient.prototype.clear = function () {
         var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.transferPool.forEach(function (transfer) { return _this.cancel(transfer); });
-            _this.transferPool = [];
-            return resolve();
-        });
+        return Promise.all(this.transferPool.map(function (transfer) { return _this.removeTransferById(transfer.transferId); }));
     };
     /**
      * Searches matching transfers
@@ -552,7 +556,7 @@ var XdccClient = /** @class */ (function (_super) {
             var received = transfer.resumePosition || 0;
             var ack = transfer.resumePosition || 0;
             var socket;
-            var disconnectedHandler = function (nick, reason, channels, message) {
+            var internalDisconnectedHandler = function (nick, reason, channels, message) {
                 if (nick === _this.nick) {
                     writeStream.end();
                     socket && socket.destroy();
@@ -561,8 +565,8 @@ var XdccClient = /** @class */ (function (_super) {
                 }
             };
             if (_this.options.closeConnectionOnCompleted) {
-                _this.once(irc_xdcc_events_1.XdccEvents.ircQuit, disconnectedHandler);
-                _this.once(irc_xdcc_events_1.XdccEvents.ircKill, disconnectedHandler);
+                _this.once(irc_xdcc_events_1.XdccEvents.ircQuit, internalDisconnectedHandler);
+                _this.once(irc_xdcc_events_1.XdccEvents.ircKill, internalDisconnectedHandler);
             }
             writeStream.on('open', function () {
                 socket = net.createConnection(transfer.port, transfer.ip, function () {
@@ -606,11 +610,11 @@ var XdccClient = /** @class */ (function (_super) {
                         transfer.progressIntervalId = null;
                     }
                     if (_this.options.closeConnectionOnCompleted) {
-                        if (_this.rawListeners(irc_xdcc_events_1.XdccEvents.ircQuit).indexOf(disconnectedHandler) > -1) {
-                            _this.removeListener(irc_xdcc_events_1.XdccEvents.ircQuit, disconnectedHandler);
+                        if (_this.rawListeners(irc_xdcc_events_1.XdccEvents.ircQuit).indexOf(internalDisconnectedHandler) > -1) {
+                            _this.removeListener(irc_xdcc_events_1.XdccEvents.ircQuit, internalDisconnectedHandler);
                         }
-                        if (_this.rawListeners(irc_xdcc_events_1.XdccEvents.ircKill).indexOf(disconnectedHandler) > -1) {
-                            _this.removeListener(irc_xdcc_events_1.XdccEvents.ircKill, disconnectedHandler);
+                        if (_this.rawListeners(irc_xdcc_events_1.XdccEvents.ircKill).indexOf(internalDisconnectedHandler) > -1) {
+                            _this.removeListener(irc_xdcc_events_1.XdccEvents.ircKill, internalDisconnectedHandler);
                         }
                     }
                     // Connection closed
@@ -689,7 +693,9 @@ var XdccClient = /** @class */ (function (_super) {
                 if (message.command == 'err_bannedfromchan' && message.args[1].toLowerCase() === transfer.channel.toLowerCase()) {
                     _this.removeListener(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
                     _this.removeListener(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
-                    reject(transfer);
+                    transfer.error = 'banned from channel';
+                    var xdccError = new irc_xdcc_error_1.XdccError('joinTransferChannel', transfer.error, transfer, null, message);
+                    reject(xdccError);
                 }
             };
             _this.once(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
@@ -714,9 +720,15 @@ var XdccClient = /** @class */ (function (_super) {
                     return resolve(transfer);
                 })
                     .catch(function (err) {
-                    var xdccError = new irc_xdcc_error_1.XdccError('start', err, transfer);
-                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
-                    return reject(xdccError);
+                    if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                        var xdccError = new irc_xdcc_error_1.XdccError('start', 'unhandled error', transfer, err);
+                        //this.emit(XdccEvents.xdccError, xdccError);
+                        return reject(xdccError);
+                    }
+                    else {
+                        //this.emit(XdccEvents.xdccError, err);
+                        return reject(err);
+                    }
                 });
             };
             if (_this.isConnected) {

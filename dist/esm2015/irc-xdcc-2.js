@@ -185,7 +185,7 @@ class XdccClient extends irc_1.Client {
         });
     }
     /**
-     * Disconnects the IRC client
+     * Disconnects the IRC client and clears the transfer pool
      * @param message The disconnection message
      * @param callback The function called after being disconnected
      */
@@ -194,7 +194,7 @@ class XdccClient extends irc_1.Client {
         this.emit(irc_xdcc_events_1.XdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
         this.clear()
             .catch((err) => this.emit(irc_xdcc_events_1.XdccEvents.ircError, err))
-            .then(() => this.disconnect.call(this, message, callback));
+            .then(() => irc_1.Client.prototype.disconnect.call(this, message, callback));
     }
     /**
      * Handles when the client is fully registered on the IRC network
@@ -218,7 +218,15 @@ class XdccClient extends irc_1.Client {
             });*/
             return this.resume();
         })
-            .catch((err) => this.emit(irc_xdcc_events_1.XdccEvents.ircError, err));
+            .catch((err) => {
+            if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                const xdccError = new irc_xdcc_error_1.XdccError('registeredHandler', 'unhandled error', null, err, message);
+                this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
+            }
+            else {
+                this.emit(irc_xdcc_events_1.XdccEvents.xdccError, err);
+            }
+        });
     }
     /**
      * Handles CTCP Version messages
@@ -408,11 +416,7 @@ class XdccClient extends irc_1.Client {
      * @returns {Promise<void>} An empty promise
      */
     clear() {
-        return new Promise((resolve, reject) => {
-            this.transferPool.forEach(transfer => this.cancel(transfer));
-            this.transferPool = [];
-            return resolve();
-        });
+        return Promise.all(this.transferPool.map((transfer) => this.removeTransferById(transfer.transferId)));
     }
     /**
      * Searches matching transfers
@@ -507,7 +511,7 @@ class XdccClient extends irc_1.Client {
             let received = transfer.resumePosition || 0;
             let ack = transfer.resumePosition || 0;
             let socket;
-            const disconnectedHandler = (nick, reason, channels, message) => {
+            const internalDisconnectedHandler = (nick, reason, channels, message) => {
                 if (nick === this.nick) {
                     writeStream.end();
                     socket && socket.destroy();
@@ -516,8 +520,8 @@ class XdccClient extends irc_1.Client {
                 }
             };
             if (this.options.closeConnectionOnCompleted) {
-                this.once(irc_xdcc_events_1.XdccEvents.ircQuit, disconnectedHandler);
-                this.once(irc_xdcc_events_1.XdccEvents.ircKill, disconnectedHandler);
+                this.once(irc_xdcc_events_1.XdccEvents.ircQuit, internalDisconnectedHandler);
+                this.once(irc_xdcc_events_1.XdccEvents.ircKill, internalDisconnectedHandler);
             }
             writeStream.on('open', () => {
                 socket = net.createConnection(transfer.port, transfer.ip, () => {
@@ -561,11 +565,11 @@ class XdccClient extends irc_1.Client {
                         transfer.progressIntervalId = null;
                     }
                     if (this.options.closeConnectionOnCompleted) {
-                        if (this.rawListeners(irc_xdcc_events_1.XdccEvents.ircQuit).indexOf(disconnectedHandler) > -1) {
-                            this.removeListener(irc_xdcc_events_1.XdccEvents.ircQuit, disconnectedHandler);
+                        if (this.rawListeners(irc_xdcc_events_1.XdccEvents.ircQuit).indexOf(internalDisconnectedHandler) > -1) {
+                            this.removeListener(irc_xdcc_events_1.XdccEvents.ircQuit, internalDisconnectedHandler);
                         }
-                        if (this.rawListeners(irc_xdcc_events_1.XdccEvents.ircKill).indexOf(disconnectedHandler) > -1) {
-                            this.removeListener(irc_xdcc_events_1.XdccEvents.ircKill, disconnectedHandler);
+                        if (this.rawListeners(irc_xdcc_events_1.XdccEvents.ircKill).indexOf(internalDisconnectedHandler) > -1) {
+                            this.removeListener(irc_xdcc_events_1.XdccEvents.ircKill, internalDisconnectedHandler);
                         }
                     }
                     // Connection closed
@@ -643,7 +647,9 @@ class XdccClient extends irc_1.Client {
                 if (message.command == 'err_bannedfromchan' && message.args[1].toLowerCase() === transfer.channel.toLowerCase()) {
                     this.removeListener(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
                     this.removeListener(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
-                    reject(transfer);
+                    transfer.error = 'banned from channel';
+                    const xdccError = new irc_xdcc_error_1.XdccError('joinTransferChannel', transfer.error, transfer, null, message);
+                    reject(xdccError);
                 }
             };
             this.once(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
@@ -667,9 +673,15 @@ class XdccClient extends irc_1.Client {
                     return resolve(transfer);
                 })
                     .catch((err) => {
-                    const xdccError = new irc_xdcc_error_1.XdccError('start', err, transfer);
-                    this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
-                    return reject(xdccError);
+                    if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                        const xdccError = new irc_xdcc_error_1.XdccError('start', 'unhandled error', transfer, err);
+                        //this.emit(XdccEvents.xdccError, xdccError);
+                        return reject(xdccError);
+                    }
+                    else {
+                        //this.emit(XdccEvents.xdccError, err);
+                        return reject(err);
+                    }
                 });
             };
             if (this.isConnected) {
