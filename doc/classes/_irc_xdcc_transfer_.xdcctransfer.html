@@ -101,13 +101,14 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_irc_xdcc_transfer_.xdcctransfer.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="_irc_xdcc_transfer_.xdcctransfer.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_irc_xdcc_transfer_.xdcctransfer.html#botnick" class="tsd-kind-icon">bot<wbr>Nick</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_irc_xdcc_transfer_.xdcctransfer.html#channel" class="tsd-kind-icon">channel</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_transfer_.xdcctransfer.html#duration" class="tsd-kind-icon">duration</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_transfer_.xdcctransfer.html#error" class="tsd-kind-icon">error</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_irc_xdcc_transfer_.xdcctransfer.html#filename" class="tsd-kind-icon">file<wbr>Name</a></li>
@@ -137,17 +138,18 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 						<li class="tsd-signature tsd-kind-icon">new <wbr>Xdcc<wbr>Transfer<span class="tsd-signature-symbol">(</span>packInfo<span class="tsd-signature-symbol">?: </span><a href="_irc_xdcc_pack_info_.xdccpackinfo.html" class="tsd-signature-type">XdccPackInfo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_irc_xdcc_transfer_.xdcctransfer.html" class="tsd-signature-type">XdccTransfer</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Overrides <a href="_irc_xdcc_pack_info_.xdccpackinfo.html">XdccPackInfo</a>.<a href="_irc_xdcc_pack_info_.xdccpackinfo.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in irc-xdcc-transfer.ts:104</li>
+									<li>Defined in irc-xdcc-transfer.ts:102</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -176,7 +178,25 @@
 					<div class="tsd-comment tsd-typography">
 						<dl class="tsd-comment-tags">
 							<dt>property</dt>
-							<dd><p>{string} botNick nick of the bot serving the file</p>
+							<dd><p>{string} botNick The nick of the bot serving the file</p>
+							</dd>
+						</dl>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+					<a name="channel" class="tsd-anchor"></a>
+					<h3>channel</h3>
+					<div class="tsd-signature tsd-kind-icon">channel<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from <a href="_irc_xdcc_pack_info_.xdccpackinfo.html">XdccPackInfo</a>.<a href="_irc_xdcc_pack_info_.xdccpackinfo.html#channel">channel</a></p>
+						<ul>
+							<li>Defined in irc-xdcc-pack-info.ts:31</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<dl class="tsd-comment-tags">
+							<dt>property</dt>
+							<dd><p>{string} channel The channel to join</p>
 							</dd>
 						</dl>
 					</div>
@@ -187,7 +207,7 @@
 					<div class="tsd-signature tsd-kind-icon">duration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:49</li>
+							<li>Defined in irc-xdcc-transfer.ts:47</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -204,7 +224,7 @@
 					<div class="tsd-signature tsd-kind-icon">error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:104</li>
+							<li>Defined in irc-xdcc-transfer.ts:102</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -228,7 +248,7 @@
 					<div class="tsd-comment tsd-typography">
 						<dl class="tsd-comment-tags">
 							<dt>property</dt>
-							<dd><p>{string} fileName transfered file name</p>
+							<dd><p>{string} fileName The transfered file name</p>
 							</dd>
 						</dl>
 					</div>
@@ -239,7 +259,7 @@
 					<div class="tsd-signature tsd-kind-icon">file<wbr>Size<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:74</li>
+							<li>Defined in irc-xdcc-transfer.ts:72</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -256,7 +276,7 @@
 					<div class="tsd-signature tsd-kind-icon">ip<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:64</li>
+							<li>Defined in irc-xdcc-transfer.ts:62</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -273,7 +293,7 @@
 					<div class="tsd-signature tsd-kind-icon">last<wbr>Command<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:59</li>
+							<li>Defined in irc-xdcc-transfer.ts:57</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -290,7 +310,7 @@
 					<div class="tsd-signature tsd-kind-icon">location<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:79</li>
+							<li>Defined in irc-xdcc-transfer.ts:77</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -307,7 +327,7 @@
 					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:94</li>
+							<li>Defined in irc-xdcc-transfer.ts:92</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -331,7 +351,7 @@
 					<div class="tsd-comment tsd-typography">
 						<dl class="tsd-comment-tags">
 							<dt>property</dt>
-							<dd><p>{number=} packId id of the requested pack</p>
+							<dd><p>{number=} packId The id of the requested pack</p>
 							</dd>
 						</dl>
 					</div>
@@ -342,7 +362,7 @@
 					<div class="tsd-signature tsd-kind-icon">params<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:99</li>
+							<li>Defined in irc-xdcc-transfer.ts:97</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -359,7 +379,7 @@
 					<div class="tsd-signature tsd-kind-icon">port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:69</li>
+							<li>Defined in irc-xdcc-transfer.ts:67</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -376,7 +396,7 @@
 					<div class="tsd-signature tsd-kind-icon">progress<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:34</li>
+							<li>Defined in irc-xdcc-transfer.ts:32</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -393,7 +413,7 @@
 					<div class="tsd-signature tsd-kind-icon">progress<wbr>Interval<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Timeout</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:54</li>
+							<li>Defined in irc-xdcc-transfer.ts:52</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -410,7 +430,7 @@
 					<div class="tsd-signature tsd-kind-icon">received<wbr>Bytes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:29</li>
+							<li>Defined in irc-xdcc-transfer.ts:27</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -427,7 +447,7 @@
 					<div class="tsd-signature tsd-kind-icon">resume<wbr>Position<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:24</li>
+							<li>Defined in irc-xdcc-transfer.ts:22</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -444,7 +464,7 @@
 					<div class="tsd-signature tsd-kind-icon">sender<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:84</li>
+							<li>Defined in irc-xdcc-transfer.ts:82</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -468,7 +488,7 @@
 					<div class="tsd-comment tsd-typography">
 						<dl class="tsd-comment-tags">
 							<dt>property</dt>
-							<dd><p>{string} server IRC server</p>
+							<dd><p>{string} server The IRC server</p>
 							</dd>
 						</dl>
 					</div>
@@ -479,7 +499,7 @@
 					<div class="tsd-signature tsd-kind-icon">speed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:39</li>
+							<li>Defined in irc-xdcc-transfer.ts:37</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -496,7 +516,7 @@
 					<div class="tsd-signature tsd-kind-icon">started<wbr>At<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:44</li>
+							<li>Defined in irc-xdcc-transfer.ts:42</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -513,7 +533,7 @@
 					<div class="tsd-signature tsd-kind-icon">state<span class="tsd-signature-symbol">:</span> <a href="../enums/_irc_xdcc_transfer_state_.xdcctransferstate.html" class="tsd-signature-type">XdccTransferState</a><span class="tsd-signature-symbol"> =&nbsp;XdccTransferState.pending</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:14</li>
+							<li>Defined in irc-xdcc-transfer.ts:12</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -528,7 +548,7 @@
 					<div class="tsd-signature tsd-kind-icon">target<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:89</li>
+							<li>Defined in irc-xdcc-transfer.ts:87</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -545,7 +565,7 @@
 					<div class="tsd-signature tsd-kind-icon">transfer<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in irc-xdcc-transfer.ts:19</li>
+							<li>Defined in irc-xdcc-transfer.ts:17</li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -568,13 +588,16 @@
 						<a href="../modules/_irc_xdcc_2_.html">"irc-<wbr>xdcc-<wbr>2"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="../modules/_irc_xdcc_client_options_.html">"irc-<wbr>xdcc-<wbr>client-<wbr>options"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_irc_xdcc_error_.html">"irc-<wbr>xdcc-<wbr>error"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_irc_xdcc_events_.html">"irc-<wbr>xdcc-<wbr>events"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_irc_xdcc_message_.html">"irc-<wbr>xdcc-<wbr>message"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="../modules/_irc_xdcc_options_.html">"irc-<wbr>xdcc-<wbr>options"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_irc_xdcc_pack_info_.html">"irc-<wbr>xdcc-<wbr>pack-<wbr>info"</a>
@@ -594,11 +617,14 @@
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
 						<a href="_irc_xdcc_transfer_.xdcctransfer.html" class="tsd-kind-icon">Xdcc<wbr>Transfer</a>
 						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 								<a href="_irc_xdcc_transfer_.xdcctransfer.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 								<a href="_irc_xdcc_transfer_.xdcctransfer.html#botnick" class="tsd-kind-icon">bot<wbr>Nick</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="_irc_xdcc_transfer_.xdcctransfer.html#channel" class="tsd-kind-icon">channel</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_irc_xdcc_transfer_.xdcctransfer.html#duration" class="tsd-kind-icon">duration</a>

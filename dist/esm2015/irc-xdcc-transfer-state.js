@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var XdccTransferState;
 (function (XdccTransferState) {
-    XdccTransferState[XdccTransferState["cancelled"] = -1] = "cancelled";
+    XdccTransferState[XdccTransferState["canceled"] = -1] = "canceled";
     XdccTransferState[XdccTransferState["pending"] = 0] = "pending";
     XdccTransferState[XdccTransferState["requested"] = 1] = "requested";
     XdccTransferState[XdccTransferState["queued"] = 2] = "queued";

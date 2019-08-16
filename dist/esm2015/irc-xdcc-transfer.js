@@ -8,7 +8,7 @@ const irc_xdcc_transfer_state_1 = require("./irc-xdcc-transfer-state");
  */
 class XdccTransfer extends irc_xdcc_pack_info_1.XdccPackInfo {
     constructor(packInfo) {
-        super();
+        super(packInfo);
         /**
          *  @property {XdccTransferState} state state of the transfer
          */
@@ -17,12 +17,6 @@ class XdccTransfer extends irc_xdcc_pack_info_1.XdccPackInfo {
          * @property {string[]} params parsed ctcp message
          */
         this.params = [];
-        if (packInfo) {
-            this.botNick = packInfo.botNick;
-            this.packId = packInfo.packId;
-            this.server = packInfo.server;
-            this.fileName = packInfo.fileName;
-        }
         this.receivedBytes = 0;
         this.resumePosition = 0;
         this.progress = 0;

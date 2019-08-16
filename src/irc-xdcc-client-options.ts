@@ -95,7 +95,7 @@ export class XdccClientOptions {
 	/**
 	 * The regular expression used to parse a DCC message from a bot
 	 */
-	dccParser: RegExp = /DCC (\w+) ['"]?([\w\.\-\[\]_+ !\(\)]+?)['"]? (\d+|[\da-f:]+) (\d+) ?(\d+)?/ ;
+	dccParser: RegExp = /DCC (\w+) ['"]?([\w\.\-\[\]_+ !\(\)#]+?)['"]? (\d+|[\da-f:]+) (\d+) ?(\d+)?/ ;
 	/**
 	 * The regular expression used to parse a queued announce from a bot
 	 */

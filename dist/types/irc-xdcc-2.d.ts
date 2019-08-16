@@ -1,6 +1,6 @@
 import { Client } from 'irc';
 import { XdccTransfer } from "./irc-xdcc-transfer";
-import { XdccClientOptions } from "./irc-xdcc-options";
+import { XdccClientOptions } from "./irc-xdcc-client-options";
 import { XdccPackInfo } from "./irc-xdcc-pack-info";
 /**
  * Class representing an irc client with XDCC capabilities.
@@ -18,7 +18,7 @@ export declare class XdccClient extends Client {
     /**
      * @property {XdccTransfer[]} transferPool The list of transfers
      */
-    private transferPool;
+    transferPool: XdccTransfer[];
     /**
      * @property {number} stores The last generated transfer id
      */
@@ -37,19 +37,19 @@ export declare class XdccClient extends Client {
     /**
      * Cancels the provided transfer
      * @param {XdccTransfer} xdccTransfer transfer instance
-     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
+     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
      */
     cancelTransfer(xdccTransfer: XdccTransfer): Promise<XdccTransfer>;
     /**
      * Cancels the transfer matching the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
+     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
      */
     cancelTransferByInfo(packInfo: XdccPackInfo): Promise<XdccTransfer>;
     /**
      * Cancels the transfer at the specified index in the transfer pool
      * @param {number} transferId transfer pool index
-     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
+     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
      */
     cancelTransferById(transferId: number): Promise<XdccTransfer>;
     /**
@@ -120,6 +120,11 @@ export declare class XdccClient extends Client {
      */
     private topicHandler;
     /**
+     * Handles error messages
+     * @param {string} message The raw error message
+     */
+    private errorHandler;
+    /**
      * Resume pooled transfers
      * @returns {XdccTransfer} The resumed XDCC transfers
      */
@@ -154,15 +159,21 @@ export declare class XdccClient extends Client {
      */
     private downloadFile;
     /**
+     * Joins the channel assigned to the transfer if required
+     * @param transfer The transfer to join the channel for
+     * @returns {Promise<XdccTransfer[]>} A promise for the transfer the channel has been joined for
+     */
+    private joinTransferChannel;
+    /**
      * Sends the start signal to the server bot for the specified transfer
      * @param {XdccTransfer} transfer The transfer to start
-     * @returns {Promise<XdccTransfer[]>} The stater XDCC transfers
+     * @returns {Promise<XdccTransfer[]>} A promise for the started XDCC transfers
      */
     start(transfer: XdccTransfer): Promise<XdccTransfer>;
     /**
      * Sends the cancel signal to server bot for the specified transfer
      * @param {XdccTransfer} transfer The transfer to cancel
-     * @returns {Promise<XdccTransfer[]>} The cancelled XDCC transfers
+     * @returns {Promise<XdccTransfer[]>} A promise for the canceled XDCC transfers
      */
     cancel(transfer: XdccTransfer): Promise<XdccTransfer>;
 }

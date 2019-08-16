@@ -1,7 +1,5 @@
 import { XdccPackInfo } from "./irc-xdcc-pack-info";
 import { XdccTransferState } from "./irc-xdcc-transfer-state";
-import { XdccClient } from "./irc-xdcc-2";
-
 /**
  * Class representing an XDCC transfer.
  * @extends XdccPackInfo
@@ -104,13 +102,7 @@ export class XdccTransfer extends XdccPackInfo {
 	error: any;
 
 	constructor(packInfo?: XdccPackInfo) {
-		super();
-		if (packInfo) {
-			this.botNick = packInfo.botNick;
-			this.packId = packInfo.packId;
-			this.server = packInfo.server;
-			this.fileName = packInfo.fileName;
-		}
+		super(packInfo);
 		this.receivedBytes = 0;
 		this.resumePosition = 0;
 		this.progress = 0;

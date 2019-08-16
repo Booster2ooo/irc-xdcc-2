@@ -1,1 +1,1 @@
-export const version = 'irc-xdcc-2 v1.0.1 - a Node.js xdcc client';
+export const version = 'irc-xdcc-2 v1.0.2 - a Node.js xdcc client';

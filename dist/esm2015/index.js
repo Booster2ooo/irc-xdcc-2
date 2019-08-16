@@ -5,8 +5,9 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // export * from './converter'; // private
 __export(require("./irc-xdcc-2"));
+__export(require("./irc-xdcc-error"));
 __export(require("./irc-xdcc-events"));
-__export(require("./irc-xdcc-options"));
+__export(require("./irc-xdcc-client-options"));
 __export(require("./irc-xdcc-pack-info"));
 __export(require("./irc-xdcc-transfer-state"));
 __export(require("./irc-xdcc-transfer"));

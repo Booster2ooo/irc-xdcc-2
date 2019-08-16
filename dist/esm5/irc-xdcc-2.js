@@ -37,13 +37,14 @@ var net = __importStar(require("net"));
 var irc_1 = require("irc");
 var fs_promise_1 = require("./fs-promise");
 //import { promises as fsp } from 'fs'; // experimental ...
-var ircXdccEvents = __importStar(require("./irc-xdcc-events"));
+var irc_xdcc_events_1 = require("./irc-xdcc-events");
 var irc_xdcc_transfer_1 = require("./irc-xdcc-transfer");
-var irc_xdcc_options_1 = require("./irc-xdcc-options");
+var irc_xdcc_client_options_1 = require("./irc-xdcc-client-options");
 var irc_xdcc_transfer_state_1 = require("./irc-xdcc-transfer-state");
 var irc_xdcc_message_1 = require("./irc-xdcc-message");
 var converter_1 = require("./converter");
 var version_1 = require("./version");
+var irc_xdcc_error_1 = require("./irc-xdcc-error");
 /**
  * Class representing an irc client with XDCC capabilities.
  * @extends irc.Client
@@ -52,7 +53,7 @@ var XdccClient = /** @class */ (function (_super) {
     __extends(XdccClient, _super);
     function XdccClient(opt) {
         var _this = this;
-        var defaultOptions = new irc_xdcc_options_1.XdccClientOptions();
+        var defaultOptions = new irc_xdcc_client_options_1.XdccClientOptions();
         var options = __assign({}, defaultOptions, opt);
         // create destination directory
         fs.mkdir(options.destPath, function () { });
@@ -68,20 +69,21 @@ var XdccClient = /** @class */ (function (_super) {
                 options.method = 'say';
                 break;
         }
-        _this = _super.call(this, opt.server, opt.nick, options) || this;
+        _this = _super.call(this, options.server, options.nick, options) || this;
         _this.isConnected = false;
-        _this.server = opt.server;
+        _this.server = options.server;
         _this.options = options;
         _this.transferPool = [];
         _this.lastIndex = 0;
-        _this.on(ircXdccEvents.ircRegistered, _this.registeredHandler)
-            .on(ircXdccEvents.ircCtcpVersion, _this.versionHandler)
-            .on(ircXdccEvents.ircCtcpPrivmsg, _this.privCtcpHandler)
-            .on(ircXdccEvents.ircNotice, _this.noticeHandler)
-            .on(ircXdccEvents.ircQuit, _this.disconnectedHandler)
-            .on(ircXdccEvents.ircKill, _this.disconnectedHandler);
+        _this.on(irc_xdcc_events_1.XdccEvents.ircRegistered, _this.registeredHandler)
+            .on(irc_xdcc_events_1.XdccEvents.ircCtcpVersion, _this.versionHandler)
+            .on(irc_xdcc_events_1.XdccEvents.ircCtcpPrivmsg, _this.privCtcpHandler)
+            .on(irc_xdcc_events_1.XdccEvents.ircNotice, _this.noticeHandler)
+            .on(irc_xdcc_events_1.XdccEvents.ircQuit, _this.disconnectedHandler)
+            .on(irc_xdcc_events_1.XdccEvents.ircKill, _this.disconnectedHandler)
+            .on(irc_xdcc_events_1.XdccEvents.ircError, _this.errorHandler);
         if (options.joinTopicChans) {
-            _this.on(ircXdccEvents.ircTopic, _this.topicHandler);
+            _this.on(irc_xdcc_events_1.XdccEvents.ircTopic, _this.topicHandler);
         }
         return _this;
     }
@@ -93,31 +95,43 @@ var XdccClient = /** @class */ (function (_super) {
     XdccClient.prototype.addTransfer = function (packInfo) {
         var _this = this;
         if (!packInfo.botNick) {
-            this.emit(ircXdccEvents.xdccError, 'botNick not provided');
-            return Promise.reject({ code: ircXdccEvents.xdccError, message: 'botNick not provided' });
+            var error = new irc_xdcc_error_1.XdccError('addTransfer', 'botNick not provided', packInfo);
+            this.emit(irc_xdcc_events_1.XdccEvents.xdccError, error);
+            return Promise.reject(error);
         }
         if (!packInfo.packId) {
-            this.emit(ircXdccEvents.xdccError, 'packId not provided');
-            return Promise.reject({ code: ircXdccEvents.xdccError, message: 'packId not provided' });
+            var error = new irc_xdcc_error_1.XdccError('addTransfer', 'packId not provided', packInfo);
+            this.emit(irc_xdcc_events_1.XdccEvents.xdccError, error);
+            return Promise.reject(error);
         }
         packInfo.server = this.server;
         return this.search(packInfo)
             .then(function (transfers) {
             if (transfers.length) {
-                return Promise.reject({ code: ircXdccEvents.xdccError, message: 'required pack already in pool', id: transfers[0].transferId });
+                return Promise.reject(new irc_xdcc_error_1.XdccError('addTransfer', "required pack already in pool with id '" + transfers[0].transferId + "'", packInfo));
             }
             return _this.createTransfer(packInfo);
         })
             .then(function (transfer) {
-            _this.emit(ircXdccEvents.xdccCreated, transfer);
+            _this.emit(irc_xdcc_events_1.XdccEvents.xdccCreated, transfer);
             return _this.start(transfer);
         })
-            .catch(function (err) { return _this.emit(ircXdccEvents.xdccError, err); });
+            .catch(function (err) {
+            if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                var xdccError = new irc_xdcc_error_1.XdccError('addTransfer', 'unhandled error', packInfo, err);
+                _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
+                return Promise.reject(xdccError);
+            }
+            else {
+                _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, err);
+                return Promise.reject(err);
+            }
+        });
     };
     /**
      * Cancels the provided transfer
      * @param {XdccTransfer} xdccTransfer transfer instance
-     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
+     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
      */
     XdccClient.prototype.cancelTransfer = function (xdccTransfer) {
         var _this = this;
@@ -127,7 +141,7 @@ var XdccClient = /** @class */ (function (_super) {
         return this.search(xdccTransfer)
             .then(function (transfers) {
             if (!transfers || !transfers.length) {
-                return Promise.reject("Unable to remove the specified transfer, not found.");
+                return Promise.reject(new irc_xdcc_error_1.XdccError('cancelTransfer', "Unable to cancel the specified transfer, not found.", xdccTransfer));
             }
             return _this.cancelTransferById(transfers[0].transferId);
         });
@@ -135,14 +149,14 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the transfer matching the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
+     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
      */
     XdccClient.prototype.cancelTransferByInfo = function (packInfo) {
         var _this = this;
         return this.search({ botNick: packInfo.botNick, packId: packInfo.packId })
             .then(function (transfers) {
             if (!transfers || !transfers.length) {
-                return Promise.reject("Unable to remove the specified transfer, not found.");
+                return Promise.reject(new irc_xdcc_error_1.XdccError('cancelTransferByInfo', "Unable to cancel the specified transfer, not found.", packInfo));
             }
             return _this.cancelTransferById(transfers[0].transferId);
         });
@@ -150,14 +164,14 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the transfer at the specified index in the transfer pool
      * @param {number} transferId transfer pool index
-     * @returns {Promise<XdccTransfer} A promise for the cancelled XDCC transfer
+     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
      */
     XdccClient.prototype.cancelTransferById = function (transferId) {
         var _this = this;
         return this.search({ transferId: transferId })
             .then(function (transfers) {
             if (!transfers || !transfers.length) {
-                return Promise.reject("Unable to remove transfer with id " + transferId + ", not found.");
+                return Promise.reject(new irc_xdcc_error_1.XdccError('cancelTransferById', "Unable to remove cancel with id " + transferId + ", not found."));
             }
             _this.cancel(transfers[0]);
             return Promise.resolve(transfers[0]);
@@ -183,7 +197,7 @@ var XdccClient = /** @class */ (function (_super) {
         return this.search(xdccTransfer)
             .then(function (transfers) {
             if (!transfers || !transfers.length) {
-                return Promise.reject("Unable to remove the specified transfer, not found.");
+                return Promise.reject(new irc_xdcc_error_1.XdccError('removeTransfer', "Unable to remove the specified transfer, not found.", xdccTransfer));
             }
             return _this.removeTransferById(transfers[0].transferId);
         });
@@ -199,7 +213,7 @@ var XdccClient = /** @class */ (function (_super) {
             .then(function (transfer) {
             var index = _this.transferPool.indexOf(transfer);
             _this.transferPool.splice(index, 1);
-            _this.emit(ircXdccEvents.xdccRemoved, transfer);
+            _this.emit(irc_xdcc_events_1.XdccEvents.xdccRemoved, transfer);
             return Promise.resolve(transfer);
         });
     };
@@ -211,9 +225,9 @@ var XdccClient = /** @class */ (function (_super) {
     XdccClient.prototype.disconnect = function (message, callback) {
         var _this = this;
         message = message || version_1.version;
-        this.emit(ircXdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
+        this.emit(irc_xdcc_events_1.XdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
         this.clear()
-            .catch(function (err) { return _this.emit(ircXdccEvents.ircError, err); })
+            .catch(function (err) { return _this.emit(irc_xdcc_events_1.XdccEvents.ircError, err); })
             .then(function () { return irc_1.Client.disconnect.call(_this, message, callback); });
     };
     /**
@@ -223,7 +237,7 @@ var XdccClient = /** @class */ (function (_super) {
     XdccClient.prototype.registeredHandler = function (message) {
         var _this = this;
         var channelRejoinedQueue = this.options.channels.map(function (chan) { return new Promise(function (resolve, reject) {
-            _this.once(ircXdccEvents.ircJoin + chan.toLowerCase(), function (nick, message) {
+            _this.once(irc_xdcc_events_1.XdccEvents.ircJoin + chan.toLowerCase(), function (nick, message) {
                 if (nick == _this.nick) {
                     resolve(chan);
                 }
@@ -232,14 +246,14 @@ var XdccClient = /** @class */ (function (_super) {
         Promise.all(channelRejoinedQueue)
             .then(function (channels) {
             _this.isConnected = true;
-            _this.emit(ircXdccEvents.ircConnected, channels);
+            _this.emit(irc_xdcc_events_1.XdccEvents.ircConnected, channels);
             /* Used .once instead of .on, no need to remove the listeners anymore
             this.options.channels.forEach((chan) => {
-                this.removeAllListeners(ircXdccEvents.ircJoin+chan.toLowerCase());
+                this.removeAllListeners(XdccEvents.ircJoin+chan.toLowerCase());
             });*/
             return _this.resume();
         })
-            .catch(function (err) { return _this.emit(ircXdccEvents.ircError, err); });
+            .catch(function (err) { return _this.emit(irc_xdcc_events_1.XdccEvents.ircError, err); });
     };
     /**
      * Handles CTCP Version messages
@@ -262,12 +276,12 @@ var XdccClient = /** @class */ (function (_super) {
         if (to !== this.nick
             || !text
             || text.substr(0, 4) !== 'DCC ') {
-            this.emit(ircXdccEvents.xdccError, { error: 'not a DCC message', message: message });
+            this.emit(irc_xdcc_events_1.XdccEvents.xdccError, new irc_xdcc_error_1.XdccError('privCtcpHandler', 'not a DCC message', null, null, message));
             return;
         }
         var parsedMessage = text.match(this.options.dccParser);
         if (!parsedMessage || !parsedMessage.length) {
-            this.emit(ircXdccEvents.xdccError, { error: 'unable to parse DCC message', message: message });
+            this.emit(irc_xdcc_events_1.XdccEvents.xdccError, new irc_xdcc_error_1.XdccError('privCtcpHandler', 'unable to parse DCC message', null, null, message));
             return;
         }
         var xdccMessage = new irc_xdcc_message_1.XdccMessage();
@@ -284,12 +298,12 @@ var XdccClient = /** @class */ (function (_super) {
                 .then(function (transfers) {
                 if (transfers.length) {
                     if (transfers[0].state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
-                        return Promise.reject('transfer already finished');
+                        return Promise.reject(new irc_xdcc_error_1.XdccError('privCtcpHandler', 'transfer already completed', transfers[0], null, xdccMessage));
                     }
                     return Promise.resolve(transfers[0]);
                 }
                 else if (!_this.options.acceptUnpooled) {
-                    return Promise.reject('unintended transfer');
+                    return Promise.reject(new irc_xdcc_error_1.XdccError('privCtcpHandler', 'unintended transfer', null, null, xdccMessage));
                 }
                 return _this.createTransfer({ botNick: xdccMessage.sender, packId: -1 });
             })
@@ -317,11 +331,19 @@ var XdccClient = /** @class */ (function (_super) {
                     return Promise.resolve(transfer);
                 }
                 else {
-                    return Promise.reject("unknown/invalid command '" + transfer.lastCommand + "'");
+                    return Promise.reject(new irc_xdcc_error_1.XdccError('privCtcpHandler', "unknown/invalid command '" + transfer.lastCommand + "'", transfer, null, xdccMessage));
                 }
             })
                 .then(_this.downloadFile.bind(_this))
-                .catch(function (err) { return _this.emit(ircXdccEvents.xdccError, err); });
+                .catch(function (err) {
+                if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                    var xdccError = new irc_xdcc_error_1.XdccError('privCtcpHandler', 'unhandled error', null, err, message);
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
+                }
+                else {
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, err);
+                }
+            });
         }, 2000);
     };
     /**
@@ -346,11 +368,19 @@ var XdccClient = /** @class */ (function (_super) {
                     transfer.fileName = fileName_1;
                     if (isQueued_1) {
                         transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.queued;
-                        _this.emit(ircXdccEvents.xdccQueued, transfer);
+                        _this.emit(irc_xdcc_events_1.XdccEvents.xdccQueued, transfer);
                     }
                 });
             })
-                .catch(function (err) { return _this.emit(ircXdccEvents.xdccError, err); });
+                .catch(function (err) {
+                if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                    var xdccError = new irc_xdcc_error_1.XdccError('noticeHandler', 'unhandled error', null, err, message);
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
+                }
+                else {
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, err);
+                }
+            });
         }
     };
     /**
@@ -382,13 +412,38 @@ var XdccClient = /** @class */ (function (_super) {
         });
     };
     /**
+     * Handles error messages
+     * @param {string} message The raw error message
+     */
+    XdccClient.prototype.errorHandler = function (message) {
+        var _this = this;
+        if (message.command === 'err_bannedfromchan') {
+            this.search({ channel: message.args[1] })
+                .then(function (transfers) {
+                transfers.forEach(function (transfer) {
+                    transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.canceled;
+                    transfer.error = message;
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccCanceled, transfer);
+                });
+            })
+                .catch(function (err) {
+                if (!(err instanceof irc_xdcc_error_1.XdccError)) {
+                    var xdccError = new irc_xdcc_error_1.XdccError('errorHandler', 'unhandled error', null, err, message);
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
+                }
+                else {
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, err);
+                }
+            });
+        }
+    };
+    /**
      * Resume pooled transfers
      * @returns {XdccTransfer} The resumed XDCC transfers
      */
     XdccClient.prototype.resume = function () {
         var _this = this;
-        return this.search({ state: irc_xdcc_transfer_state_1.XdccTransferState.pending })
-            .then(function (transfers) { return Promise.all(transfers.map(function (transfer) { return _this.start(transfer); })); });
+        return Promise.all(this.transferPool.map(function (transfer) { return _this.start(transfer); }));
     };
     /**
      * Cancels all transfers and clears the pool
@@ -446,7 +501,9 @@ var XdccClient = /** @class */ (function (_super) {
         })
             .then(function (stats) {
             if (stats.isFile() && stats.size === transfer.fileSize) {
-                return Promise.reject('file with the same size already exists');
+                transfer.error = 'file with the same size already exists';
+                _this.cancel(transfer);
+                return Promise.reject(new irc_xdcc_error_1.XdccError('validateTransferDestination', transfer.error, transfer));
             }
             return fs_promise_1.statP(partLocation)
                 .catch(function (err) {
@@ -456,7 +513,11 @@ var XdccClient = /** @class */ (function (_super) {
             .then(function (stats) {
             if (stats.isFile() && stats.size === transfer.fileSize) {
                 return fs_promise_1.renameP(partLocation, transfer.location)
-                    .then(function () { return Promise.reject('file with the same size already exists'); });
+                    .then(function () {
+                    transfer.error = 'file with the same size already exists';
+                    _this.cancel(transfer);
+                    return Promise.reject(new irc_xdcc_error_1.XdccError('validateTransferDestination', transfer.error, transfer));
+                });
             }
             else if (!stats.size) {
                 return Promise.resolve(transfer);
@@ -464,7 +525,7 @@ var XdccClient = /** @class */ (function (_super) {
             else if (_this.options.resume) {
                 transfer.resumePosition = stats.size;
                 _this.ctcp(transfer.botNick, 'privmsg', "DCC RESUME " + transfer.fileName + " " + transfer.port + " " + transfer.resumePosition);
-                return Promise.reject('transfer should be resumed');
+                return Promise.reject(new irc_xdcc_error_1.XdccError('validateTransferDestination', 'transfer should be resumed', transfer));
             }
             else {
                 return fs_promise_1.unlinkP(partLocation)
@@ -480,8 +541,8 @@ var XdccClient = /** @class */ (function (_super) {
     XdccClient.prototype.downloadFile = function (transfer) {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.cancelled) {
-                return reject('transfer aborted: transfer already finished or cancelled');
+            if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.canceled) {
+                return reject(new irc_xdcc_error_1.XdccError('downloadFile', 'transfer aborted: transfer already completed or canceled', transfer));
             }
             var partLocation = transfer.location + '.part';
             var writeStream = fs.createWriteStream(partLocation, { flags: 'a' });
@@ -494,22 +555,22 @@ var XdccClient = /** @class */ (function (_super) {
                     writeStream.end();
                     socket && socket.destroy();
                     transfer.error = 'transfer aborted: irc client disconnected';
-                    return reject('transfer aborted: irc client disconnected');
+                    return reject(new irc_xdcc_error_1.XdccError('downloadFile', transfer.error, transfer));
                 }
             };
             if (_this.options.closeConnectionOnCompleted) {
-                _this.once(ircXdccEvents.ircQuit, disconnectedHandler);
-                _this.once(ircXdccEvents.ircKill, disconnectedHandler);
+                _this.once(irc_xdcc_events_1.XdccEvents.ircQuit, disconnectedHandler);
+                _this.once(irc_xdcc_events_1.XdccEvents.ircKill, disconnectedHandler);
             }
             writeStream.on('open', function () {
                 socket = net.createConnection(transfer.port, transfer.ip, function () {
                     transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.started;
-                    _this.emit(ircXdccEvents.xdccStarted, transfer);
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccStarted, transfer);
                     transfer.progressIntervalId = setInterval(function () {
-                        _this.emit(ircXdccEvents.xdccProgress, transfer, received);
+                        _this.emit(irc_xdcc_events_1.XdccEvents.xdccProgressed, transfer, received);
                     }, _this.options.progressInterval * 1000);
                     transfer.startedAt = process.hrtime();
-                    _this.emit(ircXdccEvents.xdccConnect, transfer);
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccConnected, transfer);
                 });
                 socket.on('data', function (data) {
                     var totalReceived = received + data.length;
@@ -543,20 +604,20 @@ var XdccClient = /** @class */ (function (_super) {
                         transfer.progressIntervalId = null;
                     }
                     if (_this.options.closeConnectionOnCompleted) {
-                        if (_this.rawListeners(ircXdccEvents.ircQuit).indexOf(disconnectedHandler) > -1) {
-                            _this.removeListener(ircXdccEvents.ircQuit, disconnectedHandler);
+                        if (_this.rawListeners(irc_xdcc_events_1.XdccEvents.ircQuit).indexOf(disconnectedHandler) > -1) {
+                            _this.removeListener(irc_xdcc_events_1.XdccEvents.ircQuit, disconnectedHandler);
                         }
-                        if (_this.rawListeners(ircXdccEvents.ircKill).indexOf(disconnectedHandler) > -1) {
-                            _this.removeListener(ircXdccEvents.ircKill, disconnectedHandler);
+                        if (_this.rawListeners(irc_xdcc_events_1.XdccEvents.ircKill).indexOf(disconnectedHandler) > -1) {
+                            _this.removeListener(irc_xdcc_events_1.XdccEvents.ircKill, disconnectedHandler);
                         }
                     }
                     // Connection closed
                     if (received == transfer.fileSize) {
-                        // download complete
+                        // download completed
                         fs_promise_1.renameP(transfer.location + '.part', transfer.location)
                             .then(function () {
                             transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.completed;
-                            _this.emit(ircXdccEvents.xdccComplete, transfer);
+                            _this.emit(irc_xdcc_events_1.XdccEvents.xdccCompleted, transfer);
                             resolve(transfer);
                         })
                             .catch(function (err) {
@@ -566,27 +627,29 @@ var XdccClient = /** @class */ (function (_super) {
                     }
                     else if (received != transfer.fileSize && transfer.state !== irc_xdcc_transfer_state_1.XdccTransferState.completed) {
                         // download incomplete
-                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.cancelled; // create a "failed" status?
+                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.canceled; // create a "failed" status?
                         if (!socketError) {
                             transfer.error = 'server unexpected closed connection';
                         }
                         else {
                             transfer.error = socketError;
                         }
-                        _this.emit(ircXdccEvents.xdccDlError, transfer);
-                        reject(transfer);
+                        var xdccError = new irc_xdcc_error_1.XdccError('downloadFile', transfer.error, transfer);
+                        _this.emit(irc_xdcc_events_1.XdccEvents.xdccDlError, xdccError);
+                        reject(xdccError);
                     }
                     else if (received != transfer.fileSize && transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
                         // download aborted
-                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.cancelled; // create a "failed" status?
+                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.canceled; // create a "failed" status?
                         if (!socketError) {
                             transfer.error = 'server closed connection, download canceled';
                         }
                         else {
                             transfer.error = socketError;
                         }
-                        _this.emit(ircXdccEvents.xdccDlError, transfer);
-                        reject(transfer);
+                        var xdccError = new irc_xdcc_error_1.XdccError('downloadFile', transfer.error, transfer);
+                        _this.emit(irc_xdcc_events_1.XdccEvents.xdccDlError, xdccError);
+                        reject(xdccError);
                     }
                 };
                 socket.on('end', socketEndHandler);
@@ -595,55 +658,94 @@ var XdccClient = /** @class */ (function (_super) {
             writeStream.on('error', function (err) {
                 writeStream.end();
                 socket && socket.destroy();
-                transfer.error = err;
-                _this.emit(ircXdccEvents.xdccDlError, transfer);
-                reject("write stream error: " + err.toString());
+                transfer.error = "write stream error: " + err.toString();
+                var xdccError = new irc_xdcc_error_1.XdccError('downloadFile', transfer.error, transfer, err);
+                _this.emit(irc_xdcc_events_1.XdccEvents.xdccDlError, xdccError);
+                reject(xdccError);
             });
+        });
+    };
+    /**
+     * Joins the channel assigned to the transfer if required
+     * @param transfer The transfer to join the channel for
+     * @returns {Promise<XdccTransfer[]>} A promise for the transfer the channel has been joined for
+     */
+    XdccClient.prototype.joinTransferChannel = function (transfer) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            if (!transfer.channel) {
+                return resolve(transfer);
+            }
+            if (Object.keys(_this.chans).map(function (chan) { return chan.toLowerCase(); }).indexOf(transfer.channel.toLowerCase()) > -1) {
+                return resolve(transfer);
+            }
+            var internalJoinHandler = function (nick, message) {
+                _this.removeListener(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
+                resolve(transfer);
+            };
+            var interalErrorHandler = function (message) {
+                if (message.command == 'err_bannedfromchan' && message.args[1].toLowerCase() === transfer.channel.toLowerCase()) {
+                    _this.removeListener(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
+                    reject(transfer);
+                }
+            };
+            _this.once(irc_xdcc_events_1.XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
+            _this.once(irc_xdcc_events_1.XdccEvents.ircError, interalErrorHandler);
+            _this.join(transfer.channel);
         });
     };
     /**
      * Sends the start signal to the server bot for the specified transfer
      * @param {XdccTransfer} transfer The transfer to start
-     * @returns {Promise<XdccTransfer[]>} The stater XDCC transfers
+     * @returns {Promise<XdccTransfer[]>} A promise for the started XDCC transfers
      */
     XdccClient.prototype.start = function (transfer) {
         var _this = this;
         return new Promise(function (resolve, reject) {
             var s = function () {
-                _this[_this.options.method](transfer.botNick, _this.options.sendCommand + ' ' + transfer.packId);
-                transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.requested;
-                _this.emit(ircXdccEvents.xdccRequested, transfer);
-                return resolve(transfer);
+                _this.joinTransferChannel(transfer)
+                    .then(function () {
+                    _this[_this.options.method](transfer.botNick, _this.options.sendCommand + ' ' + transfer.packId);
+                    transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.requested;
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccRequested, transfer);
+                    return resolve(transfer);
+                })
+                    .catch(function (err) {
+                    var xdccError = new irc_xdcc_error_1.XdccError('start', err, transfer);
+                    _this.emit(irc_xdcc_events_1.XdccEvents.xdccError, xdccError);
+                    return reject(xdccError);
+                });
             };
             if (_this.isConnected) {
                 s();
             }
-            else {
-                _this.once(ircXdccEvents.ircConnected, s);
-            }
+            // if not connected, start will be called again by resume(). Not need to intercept connection even
+            //else {
+            //this.once(XdccEvents.ircConnected, s);
+            //}
         });
     };
     /**
      * Sends the cancel signal to server bot for the specified transfer
      * @param {XdccTransfer} transfer The transfer to cancel
-     * @returns {Promise<XdccTransfer[]>} The cancelled XDCC transfers
+     * @returns {Promise<XdccTransfer[]>} A promise for the canceled XDCC transfers
      */
     XdccClient.prototype.cancel = function (transfer) {
-        if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.cancelled || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
+        if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.canceled || transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
             return Promise.resolve(transfer);
         }
-        if (transfer.state === irc_xdcc_transfer_state_1.XdccTransferState.queued) {
+        if (transfer.state !== irc_xdcc_transfer_state_1.XdccTransferState.queued) {
             this[this.options.method](transfer.botNick || transfer.sender, this.options.cancelCommand);
         }
         else {
             this[this.options.method](transfer.botNick || transfer.sender, this.options.removeCommand + ' ' + transfer.packId);
         }
-        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.cancelled;
+        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.canceled;
         if (transfer.progressIntervalId) {
             clearInterval(transfer.progressIntervalId);
             transfer.progressIntervalId = null;
         }
-        this.emit(ircXdccEvents.xdccCanceled, transfer);
+        this.emit(irc_xdcc_events_1.XdccEvents.xdccCanceled, transfer);
         return Promise.resolve(transfer);
     };
     return XdccClient;

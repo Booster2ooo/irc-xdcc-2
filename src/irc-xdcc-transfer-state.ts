@@ -3,7 +3,7 @@
  * @enum
  */
 export enum XdccTransferState {
-	cancelled = -1,
+	canceled = -1,
 	pending = 0,
 	requested = 1,
 	queued = 2,

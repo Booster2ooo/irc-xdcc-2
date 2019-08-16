@@ -1,1 +1,1 @@
-{"version":3,"file":"irc-xdcc-transfer-state.d.ts","sourceRoot":"","sources":["../../src/irc-xdcc-transfer-state.ts"],"names":[],"mappings":"AAAA;;;GAGG;AACH,oBAAY,iBAAiB;IAC5B,SAAS,KAAK;IACd,OAAO,IAAI;IACX,SAAS,IAAI;IACb,MAAM,IAAI;IACV,OAAO,IAAI;IACX,SAAS,IAAI;CACb"}
+{"version":3,"file":"irc-xdcc-transfer-state.d.ts","sourceRoot":"","sources":["../../src/irc-xdcc-transfer-state.ts"],"names":[],"mappings":"AAAA;;;GAGG;AACH,oBAAY,iBAAiB;IAC5B,QAAQ,KAAK;IACb,OAAO,IAAI;IACX,SAAS,IAAI;IACb,MAAM,IAAI;IACV,OAAO,IAAI;IACX,SAAS,IAAI;CACb"}

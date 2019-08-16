@@ -22,7 +22,7 @@ var irc_xdcc_transfer_state_1 = require("./irc-xdcc-transfer-state");
 var XdccTransfer = /** @class */ (function (_super) {
     __extends(XdccTransfer, _super);
     function XdccTransfer(packInfo) {
-        var _this = _super.call(this) || this;
+        var _this = _super.call(this, packInfo) || this;
         /**
          *  @property {XdccTransferState} state state of the transfer
          */
@@ -31,12 +31,6 @@ var XdccTransfer = /** @class */ (function (_super) {
          * @property {string[]} params parsed ctcp message
          */
         _this.params = [];
-        if (packInfo) {
-            _this.botNick = packInfo.botNick;
-            _this.packId = packInfo.packId;
-            _this.server = packInfo.server;
-            _this.fileName = packInfo.fileName;
-        }
         _this.receivedBytes = 0;
         _this.resumePosition = 0;
         _this.progress = 0;

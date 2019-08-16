@@ -127,7 +127,7 @@
   , <span class="hljs-attr">closeConnectionOnCompleted</span>: <span class="hljs-literal">false</span>
 };
 <span class="hljs-comment">// launch the client</span>
-<span class="hljs-keyword">const</span> client = ircXdcc2.XdccClient(ircOptions);
+<span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> ircXdcc2.XdccClient(ircOptions);
 <span class="hljs-comment">// listen for events and do things</span>
 client.addListener(<span class="hljs-string">'registered'</span>, () =&gt; { <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'bot connected'</span>); });
 client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; { 
@@ -232,13 +232,13 @@ client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; {
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when the file transfer begins (see <a href="#xdcc-transfer">transfer info</a>)</p>
 				<p><strong>&#39;xdcc-queued&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a queue notice has been recieved from the server (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-complete&#39;</strong></p>
+				<p><strong>&#39;xdcc-completed&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer has been completed (see <a href="#xdcc-transfer">transfer info</a>)</p>
 				<p><strong>&#39;xdcc-canceled&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer has been canceled (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-connect&#39;</strong></p>
+				<p><strong>&#39;xdcc-connected&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer starts (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-progress&#39;</strong></p>
+				<p><strong>&#39;xdcc-progressed&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired every <em>option.progressInterval</em> seconds during DCC transfer providing the <em>received</em> bytes (see <a href="#xdcc-transfer">transfer info</a>)</p>
 				<p><strong>&#39;xdcc-dlerror&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer encounter an error (see <a href="#xdcc-transfer">transfer info</a>)</p>
@@ -251,6 +251,7 @@ client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; {
     botNick <span class="hljs-comment">// xdcc server bot nick</span>
   , packId <span class="hljs-comment">// xdcc pack id</span>
   , server <span class="hljs-comment">// irc server</span>
+  , channel <span class="hljs-comment">// irc channel</span>
   , state <span class="hljs-comment">// state of the transfer (see below)</span>
   , transferId <span class="hljs-comment">// id of the instance in the internal transfer pool</span>
   , resumePosition <span class="hljs-comment">// used to store resume position when an incomplete file is found in the destPath</span>
@@ -274,7 +275,7 @@ client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; {
 }</code></pre>
 				<p><strong>XdccTransferState</strong></p>
 				<pre><code class="language-javascript">{
-    cancelled = <span class="hljs-number">-1</span>,
+    canceled = <span class="hljs-number">-1</span>,
     pending = <span class="hljs-number">0</span>,
     requested = <span class="hljs-number">1</span>,
     queued = <span class="hljs-number">2</span>,
@@ -300,13 +301,16 @@ client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; {
 						<a href="modules/_irc_xdcc_2_.html">"irc-<wbr>xdcc-<wbr>2"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_client_options_.html">"irc-<wbr>xdcc-<wbr>client-<wbr>options"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_irc_xdcc_error_.html">"irc-<wbr>xdcc-<wbr>error"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="modules/_irc_xdcc_events_.html">"irc-<wbr>xdcc-<wbr>events"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="modules/_irc_xdcc_message_.html">"irc-<wbr>xdcc-<wbr>message"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/_irc_xdcc_options_.html">"irc-<wbr>xdcc-<wbr>options"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="modules/_irc_xdcc_pack_info_.html">"irc-<wbr>xdcc-<wbr>pack-<wbr>info"</a>

@@ -67,7 +67,7 @@ const ircOptions = {
   , closeConnectionOnCompleted: false
 };
 // launch the client
-const client = ircXdcc2.XdccClient(ircOptions);
+const client = new ircXdcc2.XdccClient(ircOptions);
 // listen for events and do things
 client.addListener('registered', () => { console.log('bot connected'); });
 client.addListener('connected', () => { 
@@ -247,7 +247,7 @@ Fired when the file transfer begins (see [transfer info](#xdcc-transfer))
 ```
 Fired when a queue notice has been recieved from the server (see [transfer info](#xdcc-transfer))
 
-**'xdcc-complete'**
+**'xdcc-completed'**
 ```
 (transfer) => {}
 ```
@@ -259,13 +259,13 @@ Fired when a DCC transfer has been completed (see [transfer info](#xdcc-transfer
 ```
 Fired when a DCC transfer has been canceled (see [transfer info](#xdcc-transfer))
 
-**'xdcc-connect'**
+**'xdcc-connected'**
 ```
 (transfer) => {}
 ```
 Fired when a DCC transfer starts (see [transfer info](#xdcc-transfer))
 
-**'xdcc-progress'**
+**'xdcc-progressed'**
 ```
 (transfer) => {}
 ```
@@ -287,6 +287,7 @@ An XDCC transfer is an object containing pieces of information regarding a speci
     botNick // xdcc server bot nick
   , packId // xdcc pack id
   , server // irc server
+  , channel // irc channel
   , state // state of the transfer (see below)
   , transferId // id of the instance in the internal transfer pool
   , resumePosition // used to store resume position when an incomplete file is found in the destPath
@@ -312,7 +313,7 @@ An XDCC transfer is an object containing pieces of information regarding a speci
 **XdccTransferState**
 ```javascript
 {
-    cancelled = -1,
+    canceled = -1,
     pending = 0,
     requested = 1,
     queued = 2,
