@@ -223,10 +223,15 @@ export class XdccClient extends Client {
 	 */
 	disconnect(message?: string, callback?: Function): void {
 		message = message || version;
-		this.emit(XdccEvents.ircQuit, this.nick, message, Object.keys(this.chans), null);
+		const disconnectCallback = () => {
+			this.isConnected = false;
+			if (callback) {
+				callback();
+			}
+		};
 		this.clear()
 			.catch((err) => this.emit(XdccEvents.ircError, err))
-			.then(() => Client.prototype.disconnect.call(this, message, callback))
+			.then(() => Client.prototype.disconnect.call(this, message, disconnectCallback))
 			;		
 	}
 
@@ -250,7 +255,7 @@ export class XdccClient extends Client {
 				this.options.channels.forEach((chan) => {
 					this.removeAllListeners(XdccEvents.ircJoin+chan.toLowerCase());
 				});*/
-				return this.resume();
+				return this.restart();
 			})
 			
 			.catch((err: XdccError|Error) => {
@@ -451,13 +456,33 @@ export class XdccClient extends Client {
 				})
 				;
 		}
+		else if (message.command === 'err_nosuchnick') {
+			this.search({ botNick: message.args[1]} as XdccTransfer)
+				.then((transfers: XdccTransfer[]) => {
+					transfers.forEach(transfer => {
+						transfer.state = XdccTransferState.canceled;
+						transfer.error = message;
+						this.emit(XdccEvents.xdccCanceled, transfer);
+					});
+				})
+				.catch((err: XdccError|Error) => {
+					if(!(err instanceof XdccError)) {
+						const xdccError = new XdccError('errorHandler', 'unhandled error', null, err, message);
+						this.emit(XdccEvents.xdccError, xdccError);
+					}
+					else {
+						this.emit(XdccEvents.xdccError, err);
+					}
+				})
+				;
+		}
 	}
 
 	/**
-	 * Resume pooled transfers
-	 * @returns {XdccTransfer} The resumed XDCC transfers
+	 * Restarts pooled transfers
+	 * @returns {XdccTransfer} The restarted XDCC transfers
 	 */
-	private resume(): Promise<XdccTransfer[]> {
+	private restart(): Promise<XdccTransfer[]> {
 		return Promise.all(this.transferPool.map(transfer => this.start(transfer)));
 	}
 
@@ -541,9 +566,14 @@ export class XdccClient extends Client {
 					return Promise.resolve(transfer);
 				}
 				else if (this.options.resume) {
-					transfer.resumePosition = stats.size;
-					this.ctcp(transfer.botNick, 'privmsg', `DCC RESUME ${transfer.fileName} ${transfer.port} ${transfer.resumePosition}`);
-					return Promise.reject(new XdccError('validateTransferDestination', 'transfer should be resumed', transfer));
+					if (!transfer.resumePosition) {
+						transfer.resumePosition = stats.size;
+						this.ctcp(transfer.botNick as string, 'privmsg', `DCC RESUME ${transfer.fileName} ${transfer.port} ${transfer.resumePosition}`);
+						return Promise.reject(new XdccError('validateTransferDestination', 'transfer should be resumed', transfer));
+					}
+					else {
+						return Promise.reject(new XdccError('validateTransferDestination', 'transfer should be resumed, resume command already sent', transfer));
+					}
 				}
 				else {
 					return unlinkP(partLocation)
@@ -568,7 +598,7 @@ export class XdccClient extends Client {
 			let received: number = transfer.resumePosition || 0;
 			let ack: number = transfer.resumePosition || 0;
 			let socket: net.Socket;
-			const internalDisconnectedHandler: Function = (nick: string, reason: string, channels: string[], message: string) => {
+			const internalDisconnectedHandler = (nick: string, reason: string, channels: string[], message: string) => {
 				if (nick === this.nick) {
 					writeStream.end();
 					socket && socket.destroy();
@@ -623,10 +653,10 @@ export class XdccClient extends Client {
 					}
 					if(this.options.closeConnectionOnCompleted) {
 						if (this.rawListeners(XdccEvents.ircQuit).indexOf(internalDisconnectedHandler) > -1 ) {
-							this.removeListener(XdccEvents.ircQuit, internalDisconnectedHandler);
+							this.off(XdccEvents.ircQuit, internalDisconnectedHandler);
 						}
 						if (this.rawListeners(XdccEvents.ircKill).indexOf(internalDisconnectedHandler) > -1 ) {
-							this.removeListener(XdccEvents.ircKill, internalDisconnectedHandler);
+							this.off(XdccEvents.ircKill, internalDisconnectedHandler);
 						}
 					}
 					// Connection closed
@@ -697,20 +727,23 @@ export class XdccClient extends Client {
 			if (Object.keys(this.chans).map((chan: string) => chan.toLowerCase()).indexOf(transfer.channel.toLowerCase()) > -1) {
 				return resolve(transfer);
 			}
-			const internalJoinHandler = (nick: string, message: any) => {
-				this.removeListener(XdccEvents.ircError, interalErrorHandler);
-				resolve(transfer);
+			const internalJoinHandler = (channel: string, nick: string, message: any) => {
+				if (nick === this.nick && channel.toLowerCase() === (transfer.channel as string).toLowerCase()) {
+					this.off(XdccEvents.ircJoin, internalJoinHandler);
+					this.off(XdccEvents.ircError, interalErrorHandler);
+					resolve(transfer);
+				}
 			};
 			const interalErrorHandler = (message: any) => {
 				if (message.command == 'err_bannedfromchan' && message.args[1].toLowerCase() === (transfer.channel as string).toLowerCase()) {
-					this.removeListener(XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
-					this.removeListener(XdccEvents.ircError, interalErrorHandler);
+					this.off(XdccEvents.ircJoin, internalJoinHandler);
+					this.off(XdccEvents.ircError, interalErrorHandler);
 					transfer.error = 'banned from channel';
 					const xdccError = new XdccError('joinTransferChannel', transfer.error, transfer, null, message);
 					reject(xdccError);
 				}
 			};
-			this.once(XdccEvents.ircJoin + transfer.channel, internalJoinHandler);
+			this.on(XdccEvents.ircJoin, internalJoinHandler);
 			this.on(XdccEvents.ircError, interalErrorHandler);
 			this.join(transfer.channel);
 		});
@@ -726,7 +759,12 @@ export class XdccClient extends Client {
 			const s: Function = () => {
 				this.joinTransferChannel(transfer)
 					.then(() => {
-						this[this.options.method](transfer.botNick, this.options.sendCommand + ' ' + transfer.packId);
+						(this as any)[this.options.method](transfer.botNick, this.options.sendCommand + ' ' + transfer.packId);
+						transfer.progress = 0;
+						transfer.speed = 0;
+						transfer.receivedBytes = 0;
+						transfer.resumePosition = 0;
+						delete transfer.error;
 						transfer.state = XdccTransferState.requested;
 						this.emit(XdccEvents.xdccRequested, transfer);
 						return resolve(transfer);
@@ -747,7 +785,7 @@ export class XdccClient extends Client {
 			if(this.isConnected) {
 				s();
 			}
-			// if not connected, start will be called again by resume(). Not need to intercept connection even
+			// if not connected, start will be called again by restart(). Not need to intercept connection even
 			//else {
 				//this.once(XdccEvents.ircConnected, s);
 			//}
@@ -764,10 +802,10 @@ export class XdccClient extends Client {
 			return Promise.resolve(transfer);
 		}
 		if (transfer.state !== XdccTransferState.queued) {
-			this[this.options.method](transfer.botNick || transfer.sender, this.options.cancelCommand);
+			(this as any)[this.options.method](transfer.botNick || transfer.sender, this.options.cancelCommand);
 		}
 		else {
-			this[this.options.method](transfer.botNick || transfer.sender, this.options.removeCommand + ' ' + transfer.packId);
+			(this as any)[this.options.method](transfer.botNick || transfer.sender, this.options.removeCommand + ' ' + transfer.packId);
 		}
 		transfer.state = XdccTransferState.canceled;
 		if (transfer.progressIntervalId) {

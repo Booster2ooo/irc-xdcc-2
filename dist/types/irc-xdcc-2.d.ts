@@ -125,10 +125,10 @@ export declare class XdccClient extends Client {
      */
     private errorHandler;
     /**
-     * Resume pooled transfers
-     * @returns {XdccTransfer} The resumed XDCC transfers
+     * Restarts pooled transfers
+     * @returns {XdccTransfer} The restarted XDCC transfers
      */
-    private resume;
+    private restart;
     /**
      * Cancels all transfers and clears the pool
      * @returns {Promise<void>} An empty promise
