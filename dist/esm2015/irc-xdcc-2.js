@@ -85,7 +85,6 @@ class XdccClient extends irc_1.Client {
             return this.createTransfer(packInfo);
         })
             .then((transfer) => {
-            this.emit(irc_xdcc_events_1.XdccEvents.xdccCreated, transfer);
             return this.start(transfer);
         })
             .catch((err) => {
@@ -470,6 +469,7 @@ class XdccClient extends irc_1.Client {
         this.lastIndex++;
         transfer.transferId = this.lastIndex;
         this.transferPool.push(transfer);
+        this.emit(irc_xdcc_events_1.XdccEvents.xdccCreated, transfer);
         return Promise.resolve(transfer);
     }
     /**

@@ -110,7 +110,6 @@ export class XdccClient extends Client {
 				return this.createTransfer(packInfo);
 			})
 			.then((transfer) => {
-				this.emit(XdccEvents.xdccCreated, transfer);
 				return this.start(transfer);
 			})
 			.catch((err: XdccError|Error) => {
@@ -525,7 +524,8 @@ export class XdccClient extends Client {
 		transfer.server = this.server;
 		this.lastIndex++;
 		transfer.transferId = this.lastIndex;
-		this.transferPool.push(transfer);
+		this.transferPool.push(transfer);		
+		this.emit(XdccEvents.xdccCreated, transfer);
 		return Promise.resolve(transfer);
 	}
 

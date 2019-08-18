@@ -113,7 +113,6 @@ var XdccClient = /** @class */ (function (_super) {
             return _this.createTransfer(packInfo);
         })
             .then(function (transfer) {
-            _this.emit(irc_xdcc_events_1.XdccEvents.xdccCreated, transfer);
             return _this.start(transfer);
         })
             .catch(function (err) {
@@ -513,6 +512,7 @@ var XdccClient = /** @class */ (function (_super) {
         this.lastIndex++;
         transfer.transferId = this.lastIndex;
         this.transferPool.push(transfer);
+        this.emit(irc_xdcc_events_1.XdccEvents.xdccCreated, transfer);
         return Promise.resolve(transfer);
     };
     /**

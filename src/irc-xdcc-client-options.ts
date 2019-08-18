@@ -69,7 +69,7 @@ export class XdccClientOptions {
 	 */
 	acceptUnpooled: boolean = true;
 	/**
-	 * If true, disconnects from IRC after a transfer is done
+	 * If true, disconnects active socket connections with the IRC client is disconnected or killed
 	 */
 	closeConnectionOnCompleted: boolean = false;
 	/**
