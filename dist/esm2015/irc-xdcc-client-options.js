@@ -102,7 +102,7 @@ class XdccClientOptions {
         /**
          * The regular expression used to parse a queued announce from a bot
          */
-        this.queuedParser = /queue for pack #?(\d+) \("(\.+)"\) in position/;
+        this.queuedParser = /queue for pack #?(\d+) \("(.+)"\) in position/;
         /**
          * The regular expression used to parse a send announce from a bot
          */
