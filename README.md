@@ -27,7 +27,7 @@ irc-xdcc-2 provide an extension of the irc module. It extends the [available opt
   , cancelCommand: 'XDCC CANCEL' // [String] the command sent to the bot to cancel the xdcc transfert -- Default: 'XDCC CANCEL'
   , removeCommand: 'XDCC REMOVE' // [String] the command sent to the bot to cancel a queued transfert -- Default: 'XDCC REMOVE'
   , joinTopicChans: true // [Boolean] automatically rejoin channels mentioned in the topic -- Default: true
-  , queuedParser:  /queue for pack #?(\d+) \("(\.+)"\) in position/ // [RegExp] regexp to parse queue notices/messages -- Default:  /queue for pack #?(\d+) \("(\.+)"\) in position/
+  , queuedParser:  /queue for pack #?(\d+) \("(.+)"\) in position/ // [RegExp] regexp to parse queue notices/messages -- Default:  /queue for pack #?(\d+) \("(.+)"\) in position/
   , sendParser: /sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i // [RegExp] regexp to parse send notices/messages -- Default:  /sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i
 }
 ```

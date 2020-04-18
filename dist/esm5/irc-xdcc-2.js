@@ -45,6 +45,7 @@ var irc_xdcc_message_1 = require("./irc-xdcc-message");
 var converter_1 = require("./converter");
 var version_1 = require("./version");
 var irc_xdcc_error_1 = require("./irc-xdcc-error");
+var pathSeparator = path.sep.replace('\\\\', '\\');
 /**
  * Class representing an irc client with XDCC capabilities.
  * @extends irc.Client
@@ -309,6 +310,9 @@ var XdccClient = /** @class */ (function (_super) {
             })
                 .then(function (transfers) {
                 if (transfers.length) {
+                    if (transfers.length > 1) {
+                        console.warn("found multiple transfers (" + transfers.length + ") for the same file '" + xdccMessage.params[2] + "' from the same bot '" + xdccMessage.sender + "'. Using first one.");
+                    }
                     if (transfers[0].state === irc_xdcc_transfer_state_1.XdccTransferState.completed) {
                         return Promise.reject(new irc_xdcc_error_1.XdccError('privCtcpHandler', 'transfer already completed', transfers[0], null, xdccMessage));
                     }
@@ -320,7 +324,6 @@ var XdccClient = /** @class */ (function (_super) {
                 return _this.createTransfer({ botNick: xdccMessage.sender, packId: -1 });
             })
                 .then(function (transfer) {
-                var separator = path.sep.replace('\\\\', '\\');
                 transfer.sender = xdccMessage.sender;
                 transfer.target = xdccMessage.target;
                 transfer.message = xdccMessage.message;
@@ -328,13 +331,11 @@ var XdccClient = /** @class */ (function (_super) {
                 transfer.lastCommand = xdccMessage.params[1].toUpperCase();
                 if (transfer.lastCommand === 'SEND') {
                     transfer.fileName = xdccMessage.params[2];
-                    transfer.location = _this.options.destPath
-                        + (_this.options.destPath.substr(-1, 1) === separator ? '' : separator)
-                        + transfer.fileName;
                     transfer.ip = converter_1.converter.intToIp(xdccMessage.params[3]);
                     transfer.port = parseInt(xdccMessage.params[4], 10);
                     transfer.fileSize = parseInt(xdccMessage.params[5], 10);
-                    return _this.validateTransferDestination(transfer);
+                    return _this.computeTransferDestination(transfer)
+                        .then(_this.validateTransferDestination.bind(_this));
                 }
                 else if (transfer.lastCommand === 'ACCEPT'
                     && transfer.fileName === xdccMessage.params[2]
@@ -514,6 +515,32 @@ var XdccClient = /** @class */ (function (_super) {
         this.transferPool.push(transfer);
         this.emit(irc_xdcc_events_1.XdccEvents.xdccCreated, transfer);
         return Promise.resolve(transfer);
+    };
+    /**
+     * Computes the location of the file on disk
+     * @param {XdccTransfer} transfer The transfer to verify
+     * @returns {Promise<XdccTransfer[]>} The inputed XDCC transfers
+     */
+    XdccClient.prototype.computeTransferDestination = function (transfer) {
+        var _this = this;
+        if (transfer.location) {
+            return Promise.resolve(transfer);
+        }
+        return this.search({
+            fileName: transfer.fileName
+        })
+            .then(function (transfers) {
+            var filenameParts = transfer.fileName.split('.');
+            var otherBotsTransfers = transfers.filter(function (t) { return t.botNick != transfer.botNick && t.state === irc_xdcc_transfer_state_1.XdccTransferState.started; });
+            if (otherBotsTransfers.length) {
+                // if other transfers of the same file, myfile.ext becomes myfile.(1).ext
+                filenameParts.splice(filenameParts.length - 1, 0, "(" + otherBotsTransfers.length + ")");
+            }
+            transfer.location = _this.options.destPath
+                + (_this.options.destPath.substr(-1, 1) === pathSeparator ? '' : pathSeparator)
+                + filenameParts.join('.');
+            return Promise.resolve(transfer);
+        });
     };
     /**
      * Verifies if the destination file already exists and/or needs to be resume for the specified transfer

@@ -1,5 +1,7 @@
 dummy.js
 node_modules
+dls
+.vscode
 
 # Windows image file caches
 Thumbs.db

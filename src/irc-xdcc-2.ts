@@ -14,6 +14,9 @@ import { converter } from './converter';
 import { version } from './version';
 import { XdccError } from './irc-xdcc-error';
 
+
+const pathSeparator = path.sep.replace('\\\\','\\');
+
 /**
  * Class representing an irc client with XDCC capabilities.
  * @extends irc.Client
@@ -311,6 +314,9 @@ export class XdccClient extends Client {
 			} as XdccTransfer)
 				.then((transfers: XdccTransfer[]) => {
 					if (transfers.length) {
+						if (transfers.length > 1) {
+							console.warn(`found multiple transfers (${transfers.length}) for the same file '${xdccMessage.params[2]}' from the same bot '${xdccMessage.sender}'. Using first one.`);
+						}
 						if (transfers[0].state === XdccTransferState.completed) {
 							return Promise.reject(new XdccError('privCtcpHandler', 'transfer already completed', transfers[0], null, xdccMessage));
 						}
@@ -322,7 +328,6 @@ export class XdccClient extends Client {
 					return this.createTransfer({ botNick: xdccMessage.sender, packId: -1} as XdccPackInfo);
 				})
 				.then((transfer: XdccTransfer) => {
-					const separator = path.sep.replace('\\\\','\\');
 					transfer.sender = xdccMessage.sender;
 					transfer.target = xdccMessage.target;
 					transfer.message = xdccMessage.message;
@@ -330,14 +335,11 @@ export class XdccClient extends Client {
 					transfer.lastCommand = xdccMessage.params[1].toUpperCase();
 					if (transfer.lastCommand === 'SEND') {
 						transfer.fileName = xdccMessage.params[2];
-						transfer.location = this.options.destPath
-							+ (this.options.destPath.substr(-1, 1) === separator ? '' : separator)
-							+ transfer.fileName
-							;
 						transfer.ip = converter.intToIp(xdccMessage.params[3]);
 						transfer.port = parseInt(xdccMessage.params[4], 10);
 						transfer.fileSize = parseInt(xdccMessage.params[5], 10);
-						return this.validateTransferDestination(transfer);
+						return this.computeTransferDestination(transfer)
+							.then(this.validateTransferDestination.bind(this));
 					}
 					else if (transfer.lastCommand === 'ACCEPT'
 						&& transfer.fileName === xdccMessage.params[2]
@@ -527,6 +529,33 @@ export class XdccClient extends Client {
 		this.transferPool.push(transfer);		
 		this.emit(XdccEvents.xdccCreated, transfer);
 		return Promise.resolve(transfer);
+	}
+
+	/**
+	 * Computes the location of the file on disk
+	 * @param {XdccTransfer} transfer The transfer to verify
+	 * @returns {Promise<XdccTransfer[]>} The inputed XDCC transfers
+	 */
+	private computeTransferDestination(transfer: XdccTransfer): Promise<XdccTransfer> {
+		if (transfer.location) {
+			return Promise.resolve(transfer);
+		}
+		return this.search({
+				fileName: transfer.fileName
+			} as XdccTransfer)
+			.then((transfers: XdccTransfer[]) => {
+				const filenameParts: string[] = (transfer.fileName as string).split('.');
+				const otherBotsTransfers = transfers.filter(t => t.botNick != transfer.botNick && t.state === XdccTransferState.started);
+				if (otherBotsTransfers.length) {
+					// if other transfers of the same file, myfile.ext becomes myfile.(1).ext
+					filenameParts.splice(filenameParts.length - 1, 0, `(${otherBotsTransfers.length})`);
+				}
+				transfer.location = this.options.destPath
+					+ (this.options.destPath.substr(-1, 1) === pathSeparator ? '' : pathSeparator)
+					+ filenameParts.join('.')
+					;
+				return Promise.resolve(transfer);
+			})
 	}
 
 	/**

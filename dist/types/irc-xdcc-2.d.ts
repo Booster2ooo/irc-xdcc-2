@@ -147,6 +147,12 @@ export declare class XdccClient extends Client {
      */
     private createTransfer;
     /**
+     * Computes the location of the file on disk
+     * @param {XdccTransfer} transfer The transfer to verify
+     * @returns {Promise<XdccTransfer[]>} The inputed XDCC transfers
+     */
+    private computeTransferDestination;
+    /**
      * Verifies if the destination file already exists and/or needs to be resume for the specified transfer
      * @param {XdccTransfer} transfer The transfer to verify
      * @returns {Promise<XdccTransfer[]>} The inputed XDCC transfers
