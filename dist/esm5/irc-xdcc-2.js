@@ -89,9 +89,50 @@ var XdccClient = /** @class */ (function (_super) {
         return _this;
     }
     /**
+     * Promised based factory, alternative to constructor. If opt.autoConnect, will resolve after being connected
+     * @param opt {XdccClientOptions} The XdccClientOptions
+     * @returns {Promise<XdccClient>} A promise for the new instance of XdccClient
+     */
+    XdccClient.create = function (opt) {
+        return new Promise(function (resolve, reject) {
+            var client = new XdccClient(opt);
+            if (!opt.autoConnect) {
+                return resolve(client);
+            }
+            var connectedListener = function () {
+                client.removeListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener);
+                resolve(client);
+            };
+            var netErrorListerner = function () {
+                client.removeListener(irc_xdcc_events_1.XdccEvents.ircNeterror, netErrorListerner);
+                reject(client);
+            };
+            client.addListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener);
+            client.addListener(irc_xdcc_events_1.XdccEvents.ircNeterror, netErrorListerner);
+        });
+    };
+    /**
+     * A promise wrapper around the original connect function
+     * @param retryCount {number} The number of times the client will try to connect on failure
+     * @returns {Promise<void>} A new instance of XdccClient
+     */
+    XdccClient.prototype.connectP = function (retryCount) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            var connectedListener = function () {
+                _this.removeListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener);
+                resolve();
+            };
+            _this.addListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener.bind(_this));
+            _this.connect(retryCount, function () {
+                connectedListener();
+            });
+        });
+    };
+    /**
      * Adds a transfer to the pool based on the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-     * @returns {Promise<XdccTransfer} A promise for the addedd XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the addedd XDCC transfer
      */
     XdccClient.prototype.addTransfer = function (packInfo) {
         var _this = this;
@@ -131,7 +172,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the provided transfer
      * @param {XdccTransfer} xdccTransfer transfer instance
-     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
      */
     XdccClient.prototype.cancelTransfer = function (xdccTransfer) {
         var _this = this;
@@ -149,7 +190,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the transfer matching the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
      */
     XdccClient.prototype.cancelTransferByInfo = function (packInfo) {
         var _this = this;
@@ -164,7 +205,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Cancels the transfer at the specified index in the transfer pool
      * @param {number} transferId transfer pool index
-     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
      */
     XdccClient.prototype.cancelTransferById = function (transferId) {
         var _this = this;
@@ -187,7 +228,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Removes the provided transfer instance from the list
      * @param {XdccTransfer} xdccTransfer The transfer instance
-     * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the removed XDCC transfer
      */
     XdccClient.prototype.removeTransfer = function (xdccTransfer) {
         var _this = this;
@@ -205,7 +246,7 @@ var XdccClient = /** @class */ (function (_super) {
     /**
      * Removes the transfer at the specified index in the transfer pool
      * @param {number} transferId The transfer pool index
-     * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the removed XDCC transfer
      */
     XdccClient.prototype.removeTransferById = function (transferId) {
         var _this = this;

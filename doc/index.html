@@ -96,14 +96,16 @@
   , <span class="hljs-attr">queuedParser</span>:  <span class="hljs-regexp">/queue for pack #?(\d+) \("(.+)"\) in position/</span> <span class="hljs-comment">// [RegExp] regexp to parse queue notices/messages -- Default:  /queue for pack #?(\d+) \("(.+)"\) in position/</span>
   , <span class="hljs-attr">sendParser</span>: <span class="hljs-regexp">/sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i</span> <span class="hljs-comment">// [RegExp] regexp to parse send notices/messages -- Default:  /sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i</span>
 }</code></pre>
-				<a href="#constructor" id="constructor" style="color: inherit; text-decoration: none;">
-					<h2>Constructor</h2>
+				<a href="#constructor-legacy" id="constructor-legacy" style="color: inherit; text-decoration: none;">
+					<h2>Constructor (legacy)</h2>
 				</a>
-				<p>Instead of using the new irc.Client(), use XdccClient insteead, server and nick arguments moved to options:</p>
-				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> ircXdcc2.XdccClient(options);</code></pre>
+				<p>Instead of using the new irc.Client(), use XdccClient. Server and nick arguments moved to options:</p>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> { XdccClient } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'irc-xdcc-2'</span>);
+<span class="hljs-keyword">const</span> options = { <span class="hljs-comment">/* ... */</span> };
+<span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> XdccClient(options);</code></pre>
 				<p>Sample:</p>
 				<pre><code class="language-javascript"><span class="hljs-comment">// load irc-xdcc module</span>
-<span class="hljs-keyword">const</span> ircXdcc2 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'irc-xdcc-2'</span>)
+<span class="hljs-keyword">const</span> { XdccClient, XdccEvents } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'irc-xdcc-2'</span>)
 <span class="hljs-comment">// set options object</span>
 <span class="hljs-keyword">const</span> ircOptions = {
     <span class="hljs-attr">server</span>: <span class="hljs-string">'irc.myserver.com'</span>
@@ -127,10 +129,10 @@
   , <span class="hljs-attr">closeConnectionOnCompleted</span>: <span class="hljs-literal">false</span>
 };
 <span class="hljs-comment">// launch the client</span>
-<span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> ircXdcc2.XdccClient(ircOptions);
-<span class="hljs-comment">// listen for events and do things</span>
-client.addListener(<span class="hljs-string">'registered'</span>, () =&gt; { <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'bot connected'</span>); });
-client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; { 
+<span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> XdccClient(ircOptions);
+<span class="hljs-comment">// listen for events and act</span>
+client.addListener(XdccEvents.ircRegistered, () =&gt; { <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'bot registered'</span>); });
+client.addListener(XdccEvents.ircConnected, () =&gt; { 
     client.addTransfer({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'123'</span>})
         .then(<span class="hljs-function">(<span class="hljs-params">transfer</span>) =&gt;</span> {})
         .catch(<span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> {
@@ -142,13 +144,74 @@ client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; {
             }
         });    
 });</code></pre>
+				<a href="#factory-promise-based" id="factory-promise-based" style="color: inherit; text-decoration: none;">
+					<h2>Factory (promise based)</h2>
+				</a>
+				<p>Alternatively to the constructor, XdccClient also exposes a static factory to create a new instance. The factory method returns a promise that resolves the new instance either directly after creation if autoConnect is false or after the &#39;connected&#39; event if autoConnect is true.</p>
+				<pre><code class="language-javascript"><span class="hljs-keyword">const</span> { XdccClient } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'irc-xdcc-2'</span>);
+<span class="hljs-keyword">const</span> options = { <span class="hljs-comment">/* ... */</span> };
+XdccClient.create(options)
+    .then(<span class="hljs-function"><span class="hljs-params">client</span> =&gt;</span> {})
+    .catch(<span class="hljs-function"><span class="hljs-params">err</span> =&gt;</span> <span class="hljs-built_in">console</span>.error(err))
+    ;</code></pre>
+				<p>Sample:</p>
+				<pre><code class="language-javascript"><span class="hljs-comment">// load irc-xdcc module</span>
+<span class="hljs-keyword">const</span> { XdccClient, XdccEvents } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'irc-xdcc-2'</span>)
+<span class="hljs-comment">// set options object</span>
+<span class="hljs-keyword">const</span> ircOptions = {
+    <span class="hljs-attr">server</span>: <span class="hljs-string">'irc.myserver.com'</span>
+  , <span class="hljs-attr">nick</span>: <span class="hljs-string">'myBotNick'</span>
+  , <span class="hljs-attr">userName</span>: <span class="hljs-string">'ircClient'</span>
+  , <span class="hljs-attr">realName</span>: <span class="hljs-string">'irc Client'</span>
+  , <span class="hljs-attr">port</span>: <span class="hljs-number">6697</span>
+  , <span class="hljs-attr">autoRejoin</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">autoConnect</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">channels</span>: [ <span class="hljs-string">'#xdcc'</span>, <span class="hljs-string">'#xdcc-chat'</span> ]
+  , <span class="hljs-attr">secure</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">selfSigned</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">certExpired</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">stripColors</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">encoding</span>: <span class="hljs-string">'UTF-8'</span>
+  <span class="hljs-comment">// xdcc specific options</span>
+  , <span class="hljs-attr">progressInterval</span>: <span class="hljs-number">5</span>
+  , <span class="hljs-attr">destPath</span>: <span class="hljs-string">'./dls'</span>
+  , <span class="hljs-attr">resume</span>: <span class="hljs-literal">false</span>
+  , <span class="hljs-attr">acceptUnpooled</span>: <span class="hljs-literal">true</span>
+  , <span class="hljs-attr">closeConnectionOnCompleted</span>: <span class="hljs-literal">false</span>
+};
+<span class="hljs-comment">// launch the client</span>
+XdccClient.create(options)
+    .then(<span class="hljs-function"><span class="hljs-params">client</span> =&gt;</span> {
+        <span class="hljs-comment">// listen for events and act</span>
+        client.addListener(XdccEvents.ircRegistered, () =&gt; { <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'bot registered'</span>); });
+        client.addListener(XdccEvents.ircConnected, () =&gt; { 
+            client.addTransfer({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'123'</span>})
+                .then(<span class="hljs-function">(<span class="hljs-params">transfer</span>) =&gt;</span> {})
+                .catch(<span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> {
+                    <span class="hljs-keyword">if</span>(err.code) {
+                        <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'Error '</span> + err.code + <span class="hljs-string">': '</span> +  err.message);
+                    }
+                    <span class="hljs-keyword">else</span> {
+                        <span class="hljs-built_in">console</span>.error(err);
+                    }
+                });    
+        });
+    })
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<a href="#methods" id="methods" style="color: inherit; text-decoration: none;">
 					<h2>Methods</h2>
 				</a>
 				<p>irc-xdcc module extends irc.Client methods with a set of promises:</p>
+				<p><strong>connectP(retryCount)</strong></p>
+				<p>Promise based alternative to the native connect() method.</p>
+				<pre><code class="language-javascript">client.connectP()
+    .then()
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>addTransfer(packInfo)</strong></p>
 				<p>Add a transfer to the pool and starts xdcc transfer for the provided pack infos (e.g.: { botNick: &#39;xdccBot&#39;, packId: 1 } ) where botNick is the xdcc server bot nick and packId, the required pack id.</p>
-				<pre><code class="language-javascript">botInstance.addTransfer({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'1'</span>})
+				<pre><code class="language-javascript">client.addTransfer({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'1'</span>})
     .then(<span class="hljs-function">(<span class="hljs-params">transfer</span>) =&gt;</span> {})
     .catch(<span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> {
         <span class="hljs-keyword">if</span>(err.code) {
@@ -160,88 +223,130 @@ client.addListener(<span class="hljs-string">'connected'</span>, () =&gt; {
     });</code></pre>
 				<p><strong>cancelTransfer(transfer)</strong></p>
 				<p>Cancel DCC transfer.</p>
-				<pre><code class="language-javascript">botInstance.cancelTransfer(transfer)
+				<pre><code class="language-javascript">client.cancelTransfer(transfer)
     .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>cancelTransferByInfo(packInfo)</strong></p>
 				<p>Cancel DCC transfer instances matching packInfo ({ botNick: &#39;xdccBot&#39;, packId: 1 }).</p>
-				<pre><code class="language-javascript">botInstance.cancelTransferByInfo({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'1'</span>})
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+				<pre><code class="language-javascript">client.cancelTransferByInfo({ <span class="hljs-attr">botNick</span>: <span class="hljs-string">'xdccBot'</span>, <span class="hljs-attr">packId</span>: <span class="hljs-string">'1'</span>})
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>cancelTransferById(poolId)</strong></p>
 				<p>Cancel DCC transfer for the specified transfer ID (transfer.transferId).</p>
-				<pre><code class="language-javascript">botInstance.cancelTransferById(<span class="hljs-number">2</span>)
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+				<pre><code class="language-javascript">client.cancelTransferById(<span class="hljs-number">2</span>)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>listTransfers()</strong></p>
 				<p>Returns the transfer pool (where transfers are stored).</p>
-				<pre><code class="language-javascript">botInstance.listTransfers()
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+				<pre><code class="language-javascript">client.listTransfers()
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>removeTransfer(transfer)</strong></p>
 				<p>Cancel xdcc transfer and remove transfer from pool.</p>
-				<pre><code class="language-javascript">botInstance.removeTransfer(transfer)
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+				<pre><code class="language-javascript">client.removeTransfer(transfer)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>removeTransferById(poolId)</strong></p>
 				<p>Cancel xdcc transfer and remove transfer from pool using its id.</p>
-				<pre><code class="language-javascript">botInstance.removeTransferById(<span class="hljs-number">1</span>)
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+				<pre><code class="language-javascript">client.removeTransferById(<span class="hljs-number">1</span>)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>start(transfer)</strong></p>
 				<p>Sends the start signal to the server bot for the specified transfer.</p>
-				<pre><code class="language-javascript">botInstance.start(transfer)
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+				<pre><code class="language-javascript">client.start(transfer)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<p><strong>cancel(transfer)</strong></p>
 				<p>Sends the cancel signal to server bot for the specified transfer.</p>
-				<pre><code class="language-javascript">botInstance.start(transfer)
-    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span>
-    .catch(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-        <span class="hljs-built_in">console</span>.error(err);
-    });</code></pre>
+				<pre><code class="language-javascript">client.start(transfer)
+    .then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})
+    .catch(<span class="hljs-built_in">console</span>.error.bind(<span class="hljs-built_in">console</span>))
+    ;</code></pre>
 				<a href="#events" id="events" style="color: inherit; text-decoration: none;">
 					<h2>Events</h2>
 				</a>
 				<p>Along with extending irc module option and methods, some events have been added too:</p>
-				<p><strong>&#39;connected&#39;</strong></p>
+				<p><strong>XdccEvents.ircConnected | &#39;connected&#39;</strong></p>
 				<pre><code>() =&gt; {}</code></pre><p>Event fired when the irc client is connected and joined all channels specified in the options</p>
-				<p><strong>&#39;xdcc-error&#39;</strong></p>
+				<p><strong>XdccEvents.xdccError | &#39;xdcc-error&#39;</strong></p>
 				<pre><code>(<span class="hljs-keyword">error</span>) =&gt; {}</code></pre><p>Event fired when a method call is erroneous</p>
-				<p><strong>&#39;xdcc-created&#39;</strong></p>
+				<p><strong>XdccEvents.xdccCreated | &#39;xdcc-created&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC instance has been created (and added to the transfer pool) (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-requested&#39;</strong></p>
+				<p><strong>XdccEvents.xdccRequested | &#39;xdcc-requested&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when the XDCC SEND command has been sent (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-removed&#39;</strong></p>
+				<p><strong>XdccEvents.xdccRemoved | &#39;xdcc-removed&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC instance has been removed from transfer pool (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-started&#39;</strong></p>
+				<p><strong>XdccEvents.xdccStarted | &#39;xdcc-started&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when the file transfer begins (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-queued&#39;</strong></p>
+				<p><strong>XdccEvents.xdccQueued | &#39;xdcc-queued&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a queue notice has been recieved from the server (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-completed&#39;</strong></p>
+				<p><strong>XdccEvents.xdccCompleted | &#39;xdcc-completed&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer has been completed (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-canceled&#39;</strong></p>
+				<p><strong>XdccEvents.xdccCanceled | &#39;xdcc-canceled&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer has been canceled (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-connected&#39;</strong></p>
+				<p><strong>XdccEvents.xdccConnected | &#39;xdcc-connected&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer starts (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-progressed&#39;</strong></p>
+				<p><strong>XdccEvents.xdccProgressed | &#39;xdcc-progressed&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired every <em>option.progressInterval</em> seconds during DCC transfer providing the <em>received</em> bytes (see <a href="#xdcc-transfer">transfer info</a>)</p>
-				<p><strong>&#39;xdcc-dlerror&#39;</strong></p>
+				<p><strong>XdccEvents.xdccDlError | &#39;xdcc-dlerror&#39;</strong></p>
 				<pre><code>(<span class="hljs-built_in">transfer</span>) =&gt; {}</code></pre><p>Fired when a DCC transfer encounter an error (see <a href="#xdcc-transfer">transfer info</a>)</p>
+				<p><strong>XdccEvents</strong></p>
+				<pre><code class="language-javascript">{
+    <span class="hljs-attr">xdccError</span>:              <span class="hljs-string">'xdcc-error'</span>,
+    <span class="hljs-attr">xdccCreated</span>:            <span class="hljs-string">'xdcc-created'</span>,
+    <span class="hljs-attr">xdccRequested</span>:          <span class="hljs-string">'xdcc-requested'</span>,
+    <span class="hljs-attr">xdccStarted</span>:            <span class="hljs-string">'xdcc-started'</span>,
+    <span class="hljs-attr">xdccRemoved</span>:            <span class="hljs-string">'xdcc-removed'</span>,
+    <span class="hljs-attr">xdccQueued</span>:             <span class="hljs-string">'xdcc-queued'</span>,
+    <span class="hljs-attr">xdccCompleted</span>:          <span class="hljs-string">'xdcc-completed'</span>,
+    <span class="hljs-attr">xdccCanceled</span>:           <span class="hljs-string">'xdcc-canceled'</span>,
+    <span class="hljs-attr">xdccConnected</span>:          <span class="hljs-string">'xdcc-connected'</span>,
+    <span class="hljs-attr">xdccProgressed</span>:         <span class="hljs-string">'xdcc-progressed'</span>,
+    <span class="hljs-attr">xdccDlError</span>:            <span class="hljs-string">'xdcc-dlerror'</span>,
+    <span class="hljs-attr">ircNotice</span>:              <span class="hljs-string">'notice'</span>,
+    <span class="hljs-attr">ircError</span>:               <span class="hljs-string">'error'</span>,
+    <span class="hljs-attr">ircQuit</span>:                <span class="hljs-string">'quit'</span>,
+    <span class="hljs-attr">ircKill</span>:                <span class="hljs-string">'kill'</span>,
+    <span class="hljs-attr">ircRegistered</span>:          <span class="hljs-string">'registered'</span>,
+    <span class="hljs-attr">ircJoin</span>:                <span class="hljs-string">'join'</span>,
+    <span class="hljs-attr">ircConnected</span>:           <span class="hljs-string">'connected'</span>,
+    <span class="hljs-attr">ircMotd</span>:                <span class="hljs-string">'motd'</span>,
+    <span class="hljs-attr">ircNames</span>:               <span class="hljs-string">'names'</span>,
+    <span class="hljs-attr">ircTopic</span>:               <span class="hljs-string">'topic'</span>,
+    <span class="hljs-attr">ircPart</span>:                <span class="hljs-string">'part'</span>,
+    <span class="hljs-attr">ircKick</span>:                <span class="hljs-string">'kick'</span>,
+    <span class="hljs-attr">ircMessage</span>:             <span class="hljs-string">'message'</span>,
+    <span class="hljs-attr">ircSelfMessage</span>:         <span class="hljs-string">'selfMessage'</span>,
+    <span class="hljs-attr">ircPing</span>:                <span class="hljs-string">'ping'</span>,
+    <span class="hljs-attr">ircPm</span>:                  <span class="hljs-string">'pm'</span>,
+    <span class="hljs-attr">ircCtcp</span>:                <span class="hljs-string">'ctcp'</span>,
+    <span class="hljs-attr">ircCtcpPrivmsg</span>:         <span class="hljs-string">'ctcp-privmsg'</span>,
+    <span class="hljs-attr">ircCtcpVersion</span>:         <span class="hljs-string">'ctcp-version'</span>,
+    <span class="hljs-attr">ircCtcpNotice</span>:          <span class="hljs-string">'ctcp-notice'</span>,
+    <span class="hljs-attr">ircNick</span>:                <span class="hljs-string">'nick'</span>,
+    <span class="hljs-attr">ircInvite</span>:              <span class="hljs-string">'invite'</span>,
+    <span class="hljs-attr">ircModeAdd</span>:             <span class="hljs-string">'+mode'</span>,
+    <span class="hljs-attr">ircModeRemove</span>:          <span class="hljs-string">'-mode'</span>,
+    <span class="hljs-attr">ircWhois</span>:               <span class="hljs-string">'whois'</span>,
+    <span class="hljs-attr">ircChannellistStart</span>:    <span class="hljs-string">'channellist_start'</span>,
+    <span class="hljs-attr">ircChannellistItem</span>:     <span class="hljs-string">'channellist_item'</span>,
+    <span class="hljs-attr">ircChannellist</span>:         <span class="hljs-string">'channellist'</span>,
+    <span class="hljs-attr">ircRaw</span>:                 <span class="hljs-string">'raw'</span>,
+    <span class="hljs-attr">ircAction</span>:              <span class="hljs-string">'action'</span>,
+    <span class="hljs-attr">ircClose</span>:               <span class="hljs-string">'close'</span>,
+    <span class="hljs-attr">ircNeterror</span>:            <span class="hljs-string">'netError'</span>,
+    <span class="hljs-attr">ircAbort</span>:               <span class="hljs-string">'abort'</span>,
+    <span class="hljs-attr">ircPong</span>:                <span class="hljs-string">'pong'</span>,
+    <span class="hljs-attr">ircOpered</span>:              <span class="hljs-string">'opered'</span>,
+    <span class="hljs-attr">ircConnect</span>:             <span class="hljs-string">'connect'</span>
+}</code></pre>
 				<a href="#xdcc-transfer" id="xdcc-transfer" style="color: inherit; text-decoration: none;">
 					<h2>XDCC transfer</h2>
 				</a>

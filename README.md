@@ -33,17 +33,19 @@ irc-xdcc-2 provide an extension of the irc module. It extends the [available opt
 ```
 
 
-## Constructor
-Instead of using the new irc.Client(), use XdccClient insteead, server and nick arguments moved to options:
+## Constructor (legacy)
+Instead of using the new irc.Client(), use XdccClient. Server and nick arguments moved to options:
 
 ```javascript
-const client = new ircXdcc2.XdccClient(options);
+const { XdccClient } = require('irc-xdcc-2');
+const options = { /* ... */ };
+const client = new XdccClient(options);
 ```
 
 Sample:
 ```javascript
 // load irc-xdcc module
-const ircXdcc2 = require('irc-xdcc-2')
+const { XdccClient, XdccEvents } = require('irc-xdcc-2')
 // set options object
 const ircOptions = {
     server: 'irc.myserver.com'
@@ -67,10 +69,10 @@ const ircOptions = {
   , closeConnectionOnCompleted: false
 };
 // launch the client
-const client = new ircXdcc2.XdccClient(ircOptions);
-// listen for events and do things
-client.addListener('registered', () => { console.log('bot connected'); });
-client.addListener('connected', () => { 
+const client = new XdccClient(ircOptions);
+// listen for events and act
+client.addListener(XdccEvents.ircRegistered, () => { console.log('bot registered'); });
+client.addListener(XdccEvents.ircConnected, () => { 
     client.addTransfer({ botNick: 'xdccBot', packId: '123'})
         .then((transfer) => {})
         .catch((err) => {
@@ -84,16 +86,87 @@ client.addListener('connected', () => {
 });
 ```
 
+## Factory (promise based)
+Alternatively to the constructor, XdccClient also exposes a static factory to create a new instance. The factory method returns a promise that resolves the new instance either directly after creation if autoConnect is false or after the 'connected' event if autoConnect is true.
+
+```javascript
+const { XdccClient } = require('irc-xdcc-2');
+const options = { /* ... */ };
+XdccClient.create(options)
+    .then(client => {})
+    .catch(err => console.error(err))
+    ;
+```
+
+Sample:
+```javascript
+// load irc-xdcc module
+const { XdccClient, XdccEvents } = require('irc-xdcc-2')
+// set options object
+const ircOptions = {
+    server: 'irc.myserver.com'
+  , nick: 'myBotNick'
+  , userName: 'ircClient'
+  , realName: 'irc Client'
+  , port: 6697
+  , autoRejoin: true
+  , autoConnect: true
+  , channels: [ '#xdcc', '#xdcc-chat' ]
+  , secure: true
+  , selfSigned: true
+  , certExpired: true
+  , stripColors: true
+  , encoding: 'UTF-8'
+  // xdcc specific options
+  , progressInterval: 5
+  , destPath: './dls'
+  , resume: false
+  , acceptUnpooled: true
+  , closeConnectionOnCompleted: false
+};
+// launch the client
+XdccClient.create(options)
+    .then(client => {
+        // listen for events and act
+        client.addListener(XdccEvents.ircRegistered, () => { console.log('bot registered'); });
+        client.addListener(XdccEvents.ircConnected, () => { 
+            client.addTransfer({ botNick: 'xdccBot', packId: '123'})
+                .then((transfer) => {})
+                .catch((err) => {
+                    if(err.code) {
+                        console.error('Error ' + err.code + ': ' +  err.message);
+                    }
+                    else {
+                        console.error(err);
+                    }
+                });    
+        });
+    })
+    .catch(console.error.bind(console))
+    ;
+```
+
 
 ## Methods
 irc-xdcc module extends irc.Client methods with a set of promises:
+
+**connectP(retryCount)**
+
+Promise based alternative to the native connect() method.
+
+```javascript
+client.connectP()
+    .then()
+    .catch(console.error.bind(console))
+    ;
+```
 
 **addTransfer(packInfo)**
 
 Add a transfer to the pool and starts xdcc transfer for the provided pack infos (e.g.: { botNick: 'xdccBot', packId: 1 } ) where botNick is the xdcc server bot nick and packId, the required pack id.
 
 ```javascript
-botInstance.addTransfer({ botNick: 'xdccBot', packId: '1'})
+client.addTransfer({ botNick: 'xdccBot', packId: '1'})
     .then((transfer) => {})
     .catch((err) => {
         if(err.code) {
@@ -110,11 +183,10 @@ botInstance.addTransfer({ botNick: 'xdccBot', packId: '1'})
 Cancel DCC transfer.
 
 ```javascript
-botInstance.cancelTransfer(transfer)
+client.cancelTransfer(transfer)
     .then(() => {})
-    .catch(() => {
-        console.error(err);
-    });
+    .catch(console.error.bind(console))
+    ;
 ```
 
 **cancelTransferByInfo(packInfo)**
@@ -122,11 +194,10 @@ botInstance.cancelTransfer(transfer)
 Cancel DCC transfer instances matching packInfo ({ botNick: 'xdccBot', packId: 1 }).
 
 ```javascript
-botInstance.cancelTransferByInfo({ botNick: 'xdccBot', packId: '1'})
-    .then(() =>
-    .catch(() => {
-        console.error(err);
-    });
+client.cancelTransferByInfo({ botNick: 'xdccBot', packId: '1'})
+    .then(() => {})
+    .catch(console.error.bind(console))
+    ;
 ```
 
 **cancelTransferById(poolId)**
@@ -134,11 +205,10 @@ botInstance.cancelTransferByInfo({ botNick: 'xdccBot', packId: '1'})
 Cancel DCC transfer for the specified transfer ID (transfer.transferId).
 
 ```javascript
-botInstance.cancelTransferById(2)
-    .then(() =>
-    .catch(() => {
-        console.error(err);
-    });
+client.cancelTransferById(2)
+    .then(() => {})
+    .catch(console.error.bind(console))
+    ;
 ```
 
 **listTransfers()**
@@ -146,11 +216,10 @@ botInstance.cancelTransferById(2)
 Returns the transfer pool (where transfers are stored).
 
 ```javascript
-botInstance.listTransfers()
-    .then(() =>
-    .catch(() => {
-        console.error(err);
-    });
+client.listTransfers()
+    .then(() => {})
+    .catch(console.error.bind(console))
+    ;
 ```
 
 **removeTransfer(transfer)**
@@ -158,11 +227,10 @@ botInstance.listTransfers()
 Cancel xdcc transfer and remove transfer from pool.
 
 ```javascript
-botInstance.removeTransfer(transfer)
-    .then(() =>
-    .catch(() => {
-        console.error(err);
-    });
+client.removeTransfer(transfer)
+    .then(() => {})
+    .catch(console.error.bind(console))
+    ;
 ```
 
 **removeTransferById(poolId)**
@@ -170,11 +238,10 @@ botInstance.removeTransfer(transfer)
 Cancel xdcc transfer and remove transfer from pool using its id.
 
 ```javascript
-botInstance.removeTransferById(1)
-    .then(() =>
-    .catch(() => {
-        console.error(err);
-    });
+client.removeTransferById(1)
+    .then(() => {})
+    .catch(console.error.bind(console))
+    ;
 ```
 
 **start(transfer)**
@@ -182,11 +249,10 @@ botInstance.removeTransferById(1)
 Sends the start signal to the server bot for the specified transfer.
 
 ```javascript
-botInstance.start(transfer)
-    .then(() =>
-    .catch(() => {
-        console.error(err);
-    });
+client.start(transfer)
+    .then(() => {})
+    .catch(console.error.bind(console))
+    ;
 ```
 
 **cancel(transfer)**
@@ -194,88 +260,140 @@ botInstance.start(transfer)
 Sends the cancel signal to server bot for the specified transfer.
 
 ```javascript
-botInstance.start(transfer)
-    .then(() =>
-    .catch(() => {
-        console.error(err);
-    });
+client.start(transfer)
+    .then(() => {})
+    .catch(console.error.bind(console))
+    ;
 ```
 
 
 ## Events
 Along with extending irc module option and methods, some events have been added too:
 
-**'connected'**
+**XdccEvents.ircConnected | 'connected'**
 ```
 () => {}
 ```
 Event fired when the irc client is connected and joined all channels specified in the options
 
-**'xdcc-error'**
+**XdccEvents.xdccError | 'xdcc-error'**
 ```
 (error) => {}
 ```
 Event fired when a method call is erroneous
 
-**'xdcc-created'**
+**XdccEvents.xdccCreated | 'xdcc-created'**
 ```
 (transfer) => {}
 ```
 Fired when a DCC instance has been created (and added to the transfer pool) (see [transfer info](#xdcc-transfer))
 
-**'xdcc-requested'**
+**XdccEvents.xdccRequested | 'xdcc-requested'**
 ```
 (transfer) => {}
 ```
 Fired when the XDCC SEND command has been sent (see [transfer info](#xdcc-transfer))
 
-**'xdcc-removed'**
+**XdccEvents.xdccRemoved | 'xdcc-removed'**
 ```
 (transfer) => {}
 ```
 Fired when a DCC instance has been removed from transfer pool (see [transfer info](#xdcc-transfer))
 
-**'xdcc-started'**
+**XdccEvents.xdccStarted | 'xdcc-started'**
 ```
 (transfer) => {}
 ```
 Fired when the file transfer begins (see [transfer info](#xdcc-transfer))
 
-**'xdcc-queued'**
+**XdccEvents.xdccQueued | 'xdcc-queued'**
 ```
 (transfer) => {}
 ```
 Fired when a queue notice has been recieved from the server (see [transfer info](#xdcc-transfer))
 
-**'xdcc-completed'**
+**XdccEvents.xdccCompleted | 'xdcc-completed'**
 ```
 (transfer) => {}
 ```
 Fired when a DCC transfer has been completed (see [transfer info](#xdcc-transfer))
 
-**'xdcc-canceled'**
+**XdccEvents.xdccCanceled | 'xdcc-canceled'**
 ```
 (transfer) => {}
 ```
 Fired when a DCC transfer has been canceled (see [transfer info](#xdcc-transfer))
 
-**'xdcc-connected'**
+**XdccEvents.xdccConnected | 'xdcc-connected'**
 ```
 (transfer) => {}
 ```
 Fired when a DCC transfer starts (see [transfer info](#xdcc-transfer))
 
-**'xdcc-progressed'**
+**XdccEvents.xdccProgressed | 'xdcc-progressed'**
 ```
 (transfer) => {}
 ```
 Fired every *option.progressInterval* seconds during DCC transfer providing the *received* bytes (see [transfer info](#xdcc-transfer))
 
-**'xdcc-dlerror'**
+**XdccEvents.xdccDlError | 'xdcc-dlerror'**
 ```
 (transfer) => {}
 ```
 Fired when a DCC transfer encounter an error (see [transfer info](#xdcc-transfer))
+
+**XdccEvents**
+```javascript
+{
+    xdccError:              'xdcc-error',
+    xdccCreated:            'xdcc-created',
+    xdccRequested:          'xdcc-requested',
+    xdccStarted:            'xdcc-started',
+    xdccRemoved:            'xdcc-removed',
+    xdccQueued:             'xdcc-queued',
+    xdccCompleted:          'xdcc-completed',
+    xdccCanceled:           'xdcc-canceled',
+    xdccConnected:          'xdcc-connected',
+    xdccProgressed:         'xdcc-progressed',
+    xdccDlError:            'xdcc-dlerror',
+    ircNotice:              'notice',
+    ircError:               'error',
+    ircQuit:                'quit',
+    ircKill:                'kill',
+    ircRegistered:          'registered',
+    ircJoin:                'join',
+    ircConnected:           'connected',
+    ircMotd:                'motd',
+    ircNames:               'names',
+    ircTopic:               'topic',
+    ircPart:                'part',
+    ircKick:                'kick',
+    ircMessage:             'message',
+    ircSelfMessage:         'selfMessage',
+    ircPing:                'ping',
+    ircPm:                  'pm',
+    ircCtcp:                'ctcp',
+    ircCtcpPrivmsg:         'ctcp-privmsg',
+    ircCtcpVersion:         'ctcp-version',
+    ircCtcpNotice:          'ctcp-notice',
+    ircNick:                'nick',
+    ircInvite:              'invite',
+    ircModeAdd:             '+mode',
+    ircModeRemove:          '-mode',
+    ircWhois:               'whois',
+    ircChannellistStart:    'channellist_start',
+    ircChannellistItem:     'channellist_item',
+    ircChannellist:         'channellist',
+    ircRaw:                 'raw',
+    ircAction:              'action',
+    ircClose:               'close',
+    ircNeterror:            'netError',
+    ircAbort:               'abort',
+    ircPong:                'pong',
+    ircOpered:              'opered',
+    ircConnect:             'connect'
+}
+```
 
 
 ## XDCC transfer

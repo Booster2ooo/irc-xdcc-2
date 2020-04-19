@@ -83,11 +83,53 @@ export class XdccClient extends Client {
 			this.on(XdccEvents.ircTopic, this.topicHandler);
 		}
 	}
+	
+	/**
+	 * Promised based factory, alternative to constructor. If opt.autoConnect, will resolve after being connected
+	 * @param opt {XdccClientOptions} The XdccClientOptions
+	 * @returns {Promise<XdccClient>} A promise for the new instance of XdccClient
+	 */
+	static create(opt: XdccClientOptions): Promise<XdccClient> {
+		return new Promise((resolve, reject) => {
+			const client = new XdccClient(opt);
+			if (!opt.autoConnect) {
+				return resolve(client);
+			}
+			const connectedListener = () => {
+				client.removeListener(XdccEvents.ircConnected, connectedListener);
+				resolve(client);
+			};
+			const netErrorListerner = () => {
+				client.removeListener(XdccEvents.ircNeterror, netErrorListerner);
+				reject(client);
+			};
+			client.addListener(XdccEvents.ircConnected, connectedListener);
+			client.addListener(XdccEvents.ircNeterror, netErrorListerner);
+		});
+	}
+
+	/**
+	 * A promise wrapper around the original connect function
+	 * @param retryCount {number} The number of times the client will try to connect on failure
+	 * @returns {Promise<void>} A new instance of XdccClient
+	 */
+	connectP(retryCount?: number): Promise<void> {
+		return new Promise((resolve, reject) => {			
+			const connectedListener = () => {
+				this.removeListener(XdccEvents.ircConnected, connectedListener);
+				resolve();
+			};
+			this.addListener(XdccEvents.ircConnected, connectedListener.bind(this));
+			this.connect(retryCount, () => {
+				connectedListener();
+			});
+		});
+	}
 
 	/**
 	 * Adds a transfer to the pool based on the provided xdcc pack info
 	 * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-	 * @returns {Promise<XdccTransfer} A promise for the addedd XDCC transfer
+	 * @returns {Promise<XdccTransfer>} A promise for the addedd XDCC transfer
 	 */
 	addTransfer(packInfo: XdccPackInfo): Promise<XdccTransfer> {
 		if (!packInfo.botNick) {
@@ -131,7 +173,7 @@ export class XdccClient extends Client {
 	/**
 	 * Cancels the provided transfer
 	 * @param {XdccTransfer} xdccTransfer transfer instance
-	 * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+	 * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
 	 */
 	cancelTransfer(xdccTransfer: XdccTransfer): Promise<XdccTransfer> {
 		if (xdccTransfer.transferId) {
@@ -149,7 +191,7 @@ export class XdccClient extends Client {
 	/**
 	 * Cancels the transfer matching the provided xdcc pack info
 	 * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-	 * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+	 * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
 	 */
 	cancelTransferByInfo(packInfo: XdccPackInfo): Promise<XdccTransfer> {
 		return this.search({ botNick: packInfo.botNick, packId: packInfo.packId } as XdccTransfer)
@@ -164,7 +206,7 @@ export class XdccClient extends Client {
 	/**
 	 * Cancels the transfer at the specified index in the transfer pool
 	 * @param {number} transferId transfer pool index
-	 * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+	 * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
 	 */
 	cancelTransferById(transferId: number): Promise<XdccTransfer> {
 		return this.search({ transferId } as XdccTransfer)
@@ -188,7 +230,7 @@ export class XdccClient extends Client {
 	/**
 	 * Removes the provided transfer instance from the list
 	 * @param {XdccTransfer} xdccTransfer The transfer instance
-	 * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
+	 * @returns {Promise<XdccTransfer>} A promise for the removed XDCC transfer
 	 */
 	removeTransfer(xdccTransfer: XdccTransfer): Promise<XdccTransfer> {
 		if (xdccTransfer.transferId) {
@@ -206,7 +248,7 @@ export class XdccClient extends Client {
 	/**
 	 * Removes the transfer at the specified index in the transfer pool
 	 * @param {number} transferId The transfer pool index
-	 * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
+	 * @returns {Promise<XdccTransfer>} A promise for the removed XDCC transfer
 	 */
 	removeTransferById(transferId: number): Promise<XdccTransfer> {
 		return this.cancelTransferById(transferId)

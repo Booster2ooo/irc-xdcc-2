@@ -62,9 +62,49 @@ class XdccClient extends irc_1.Client {
         }
     }
     /**
+     * Promised based factory, alternative to constructor. If opt.autoConnect, will resolve after being connected
+     * @param opt {XdccClientOptions} The XdccClientOptions
+     * @returns {Promise<XdccClient>} A promise for the new instance of XdccClient
+     */
+    static create(opt) {
+        return new Promise((resolve, reject) => {
+            const client = new XdccClient(opt);
+            if (!opt.autoConnect) {
+                return resolve(client);
+            }
+            const connectedListener = () => {
+                client.removeListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener);
+                resolve(client);
+            };
+            const netErrorListerner = () => {
+                client.removeListener(irc_xdcc_events_1.XdccEvents.ircNeterror, netErrorListerner);
+                reject(client);
+            };
+            client.addListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener);
+            client.addListener(irc_xdcc_events_1.XdccEvents.ircNeterror, netErrorListerner);
+        });
+    }
+    /**
+     * A promise wrapper around the original connect function
+     * @param retryCount {number} The number of times the client will try to connect on failure
+     * @returns {Promise<void>} A new instance of XdccClient
+     */
+    connectP(retryCount) {
+        return new Promise((resolve, reject) => {
+            const connectedListener = () => {
+                this.removeListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener);
+                resolve();
+            };
+            this.addListener(irc_xdcc_events_1.XdccEvents.ircConnected, connectedListener.bind(this));
+            this.connect(retryCount, () => {
+                connectedListener();
+            });
+        });
+    }
+    /**
      * Adds a transfer to the pool based on the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-     * @returns {Promise<XdccTransfer} A promise for the addedd XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the addedd XDCC transfer
      */
     addTransfer(packInfo) {
         if (!packInfo.botNick) {
@@ -103,7 +143,7 @@ class XdccClient extends irc_1.Client {
     /**
      * Cancels the provided transfer
      * @param {XdccTransfer} xdccTransfer transfer instance
-     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
      */
     cancelTransfer(xdccTransfer) {
         if (xdccTransfer.transferId) {
@@ -120,7 +160,7 @@ class XdccClient extends irc_1.Client {
     /**
      * Cancels the transfer matching the provided xdcc pack info
      * @param {XdccPackInfo} packInfo xdcc bot nick and pack id
-     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
      */
     cancelTransferByInfo(packInfo) {
         return this.search({ botNick: packInfo.botNick, packId: packInfo.packId })
@@ -134,7 +174,7 @@ class XdccClient extends irc_1.Client {
     /**
      * Cancels the transfer at the specified index in the transfer pool
      * @param {number} transferId transfer pool index
-     * @returns {Promise<XdccTransfer} A promise for the canceled XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the canceled XDCC transfer
      */
     cancelTransferById(transferId) {
         return this.search({ transferId })
@@ -156,7 +196,7 @@ class XdccClient extends irc_1.Client {
     /**
      * Removes the provided transfer instance from the list
      * @param {XdccTransfer} xdccTransfer The transfer instance
-     * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the removed XDCC transfer
      */
     removeTransfer(xdccTransfer) {
         if (xdccTransfer.transferId) {
@@ -173,7 +213,7 @@ class XdccClient extends irc_1.Client {
     /**
      * Removes the transfer at the specified index in the transfer pool
      * @param {number} transferId The transfer pool index
-     * @returns {Promise<XdccTransfer} A promise for the removed XDCC transfer
+     * @returns {Promise<XdccTransfer>} A promise for the removed XDCC transfer
      */
     removeTransferById(transferId) {
         return this.cancelTransferById(transferId)
