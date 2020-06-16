@@ -16,6 +16,7 @@ const fs_promise_1 = require("./fs-promise");
 const irc_xdcc_events_1 = require("./irc-xdcc-events");
 const irc_xdcc_transfer_1 = require("./irc-xdcc-transfer");
 const irc_xdcc_client_options_1 = require("./irc-xdcc-client-options");
+const irc_xdcc_pack_info_1 = require("./irc-xdcc-pack-info");
 const irc_xdcc_transfer_state_1 = require("./irc-xdcc-transfer-state");
 const irc_xdcc_message_1 = require("./irc-xdcc-message");
 const converter_1 = require("./converter");
@@ -374,7 +375,7 @@ class XdccClient extends irc_1.Client {
         if (dccSendMessage || dccQueuedMessage) {
             let packId = dccSendMessage ? dccSendMessage[3] : dccQueuedMessage[1];
             let fileName = dccSendMessage ? dccSendMessage[4] : dccQueuedMessage[2];
-            let isQueued = false;
+            let isQueued = !dccSendMessage;
             this.search({ botNick: from, packId })
                 .then((transfers) => {
                 // The should be only one...
@@ -385,6 +386,32 @@ class XdccClient extends irc_1.Client {
                         this.emit(irc_xdcc_events_1.XdccEvents.xdccQueued, transfer);
                     }
                 });
+                if (this.options.acceptUnpooled && (!transfers || !transfers.length)) {
+                    const packInfo = new irc_xdcc_pack_info_1.XdccPackInfo();
+                    packInfo.botNick = from;
+                    packInfo.packId = packId;
+                    packInfo.fileName = fileName;
+                    const xdccMessage = new irc_xdcc_message_1.XdccMessage();
+                    xdccMessage.sender = from;
+                    xdccMessage.target = to;
+                    xdccMessage.message = text;
+                    xdccMessage.params = dccSendMessage || dccQueuedMessage || [];
+                    return this.createTransfer(packInfo)
+                        .then((transfer) => {
+                        transfer.sender = xdccMessage.sender;
+                        transfer.target = xdccMessage.target;
+                        transfer.message = xdccMessage.message;
+                        transfer.params = xdccMessage.params;
+                        if (!isQueued) {
+                            transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.requested;
+                            this.emit(irc_xdcc_events_1.XdccEvents.xdccRequested, transfer);
+                        }
+                        else {
+                            transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.queued;
+                            this.emit(irc_xdcc_events_1.XdccEvents.xdccQueued, transfer);
+                        }
+                    });
+                }
             })
                 .catch((err) => {
                 if (!(err instanceof irc_xdcc_error_1.XdccError)) {
@@ -492,7 +519,7 @@ class XdccClient extends irc_1.Client {
             let isMatch = true;
             Object.keys(needle).forEach(key => {
                 if (needle.hasOwnProperty(key) && (!transfer.hasOwnProperty(key)
-                    || transfer[key] !== needle[key])) {
+                    || transfer[key] + '' !== needle[key] + '')) {
                     isMatch = false;
                 }
             });

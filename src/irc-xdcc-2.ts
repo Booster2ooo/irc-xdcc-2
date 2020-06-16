@@ -420,7 +420,7 @@ export class XdccClient extends Client {
 		if (dccSendMessage || dccQueuedMessage) {
 			let packId: string|number = dccSendMessage ? dccSendMessage[3] : (dccQueuedMessage as RegExpMatchArray)[1];
 			let fileName: string = dccSendMessage ? dccSendMessage[4] : (dccQueuedMessage as RegExpMatchArray)[2];
-			let isQueued: boolean = false;
+			let isQueued: boolean = !dccSendMessage;
 			this.search({ botNick: from, packId } as XdccTransfer)
 				.then((transfers: XdccTransfer[]) => {
 					// The should be only one...
@@ -431,6 +431,32 @@ export class XdccClient extends Client {
 							this.emit(XdccEvents.xdccQueued, transfer);
 						}
 					});
+					if (this.options.acceptUnpooled && (!transfers || !transfers.length)) {
+						const packInfo = new XdccPackInfo();
+						packInfo.botNick = from;
+						packInfo.packId = packId;
+						packInfo.fileName = fileName;						
+						const xdccMessage: XdccMessage = new XdccMessage();
+						xdccMessage.sender = from;
+						xdccMessage.target = to;
+						xdccMessage.message = text;
+						xdccMessage.params = dccSendMessage || dccQueuedMessage || [];
+						return this.createTransfer(packInfo)
+							.then((transfer: XdccTransfer) => {
+								transfer.sender = xdccMessage.sender;
+								transfer.target = xdccMessage.target;
+								transfer.message = xdccMessage.message;
+								transfer.params = xdccMessage.params;
+								if (!isQueued) {
+									transfer.state = XdccTransferState.requested;
+									this.emit(XdccEvents.xdccRequested, transfer);
+								}
+								else {
+									transfer.state = XdccTransferState.queued;
+									this.emit(XdccEvents.xdccQueued, transfer);
+								}
+							});
+					}
 				})
 				.catch((err: XdccError|Error) => {
 					if(!(err instanceof XdccError)) {
@@ -548,7 +574,7 @@ export class XdccClient extends Client {
 			Object.keys(needle).forEach(key => {
 				if(needle.hasOwnProperty(key) && ( 
 						!transfer.hasOwnProperty(key) 
-					  || (transfer as any)[key] !== (needle as any)[key]
+					  || (transfer as any)[key]+'' !== (needle as any)[key]+''
 					)
 				) {
 					isMatch = false;
