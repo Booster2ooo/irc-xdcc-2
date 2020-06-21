@@ -348,7 +348,7 @@ var XdccClient = /** @class */ (function (_super) {
         setTimeout(function () {
             return _this.search({
                 botNick: xdccMessage.sender,
-                fileName: xdccMessage.params[2]
+                fileName: (xdccMessage.params[2] || '').replace(_this.options.specialChars, _this.options.specialCharsAlternative)
             })
                 .then(function (transfers) {
                 if (transfers.length) {
@@ -372,7 +372,7 @@ var XdccClient = /** @class */ (function (_super) {
                 transfer.params = xdccMessage.params;
                 transfer.lastCommand = xdccMessage.params[1].toUpperCase();
                 if (transfer.lastCommand === 'SEND') {
-                    transfer.fileName = xdccMessage.params[2];
+                    transfer.fileName = (xdccMessage.params[2] || '').replace(_this.options.specialChars, _this.options.specialCharsAlternative);
                     transfer.ip = converter_1.converter.intToIp(xdccMessage.params[3]);
                     transfer.port = parseInt(xdccMessage.params[4], 10);
                     transfer.fileSize = parseInt(xdccMessage.params[5], 10);
@@ -380,7 +380,7 @@ var XdccClient = /** @class */ (function (_super) {
                         .then(_this.validateTransferDestination.bind(_this));
                 }
                 else if (transfer.lastCommand === 'ACCEPT'
-                    && transfer.fileName === xdccMessage.params[2]
+                    && transfer.fileName === (xdccMessage.params[2] || '').replace(_this.options.specialChars, _this.options.specialCharsAlternative)
                     && transfer.port === parseInt(xdccMessage.params[3], 10)
                     && transfer.resumePosition === parseInt(xdccMessage.params[4], 10)) {
                     return Promise.resolve(transfer);
@@ -414,19 +414,21 @@ var XdccClient = /** @class */ (function (_super) {
         var dccQueuedMessage = text.match(this.options.queuedParser);
         if (dccSendMessage || dccQueuedMessage) {
             var packId_1 = dccSendMessage ? dccSendMessage[3] : dccQueuedMessage[1];
-            var fileName_1 = dccSendMessage ? dccSendMessage[4] : dccQueuedMessage[2];
+            var fileName_1 = (dccSendMessage ? dccSendMessage[4] : dccQueuedMessage[2] || '').replace(this.options.specialChars, this.options.specialCharsAlternative);
             var isQueued_1 = !dccSendMessage;
             this.search({ botNick: from, packId: packId_1 })
                 .then(function (transfers) {
-                // The should be only one...
-                transfers.forEach(function (transfer) {
-                    transfer.fileName = fileName_1;
-                    if (isQueued_1) {
-                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.queued;
-                        _this.emit(irc_xdcc_events_1.XdccEvents.xdccQueued, transfer);
-                    }
-                });
-                if (_this.options.acceptUnpooled && (!transfers || !transfers.length)) {
+                if (transfers && transfers.length) {
+                    // There should be only one...
+                    transfers.forEach(function (transfer) {
+                        transfer.fileName = fileName_1;
+                        if (isQueued_1) {
+                            transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.queued;
+                            _this.emit(irc_xdcc_events_1.XdccEvents.xdccQueued, transfer);
+                        }
+                    });
+                }
+                else if (_this.options.acceptUnpooled) {
                     var packInfo = new irc_xdcc_pack_info_1.XdccPackInfo();
                     packInfo.botNick = from;
                     packInfo.packId = packId_1;

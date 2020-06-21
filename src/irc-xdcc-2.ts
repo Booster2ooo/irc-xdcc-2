@@ -352,7 +352,7 @@ export class XdccClient extends Client {
 		setTimeout(() => 
 			this.search({
 					botNick: xdccMessage.sender,
-					fileName: xdccMessage.params[2]
+					fileName: (xdccMessage.params[2]||'').replace(this.options.specialChars, this.options.specialCharsAlternative)
 			} as XdccTransfer)
 				.then((transfers: XdccTransfer[]) => {
 					if (transfers.length) {
@@ -376,7 +376,7 @@ export class XdccClient extends Client {
 					transfer.params = xdccMessage.params;
 					transfer.lastCommand = xdccMessage.params[1].toUpperCase();
 					if (transfer.lastCommand === 'SEND') {
-						transfer.fileName = xdccMessage.params[2];
+						transfer.fileName = (xdccMessage.params[2]||'').replace(this.options.specialChars, this.options.specialCharsAlternative);
 						transfer.ip = converter.intToIp(xdccMessage.params[3]);
 						transfer.port = parseInt(xdccMessage.params[4], 10);
 						transfer.fileSize = parseInt(xdccMessage.params[5], 10);
@@ -384,7 +384,7 @@ export class XdccClient extends Client {
 							.then(this.validateTransferDestination.bind(this));
 					}
 					else if (transfer.lastCommand === 'ACCEPT'
-						&& transfer.fileName === xdccMessage.params[2]
+						&& transfer.fileName === (xdccMessage.params[2]||'').replace(this.options.specialChars, this.options.specialCharsAlternative)
 						&& transfer.port === parseInt(xdccMessage.params[3], 10)
 						&& transfer.resumePosition === parseInt(xdccMessage.params[4], 10)
 					) {
@@ -419,19 +419,21 @@ export class XdccClient extends Client {
 		const dccQueuedMessage: RegExpMatchArray | null = text.match(this.options.queuedParser);
 		if (dccSendMessage || dccQueuedMessage) {
 			let packId: string|number = dccSendMessage ? dccSendMessage[3] : (dccQueuedMessage as RegExpMatchArray)[1];
-			let fileName: string = dccSendMessage ? dccSendMessage[4] : (dccQueuedMessage as RegExpMatchArray)[2];
+			let fileName: string = (dccSendMessage ? dccSendMessage[4] : (dccQueuedMessage as RegExpMatchArray)[2]||'').replace(this.options.specialChars, this.options.specialCharsAlternative);
 			let isQueued: boolean = !dccSendMessage;
 			this.search({ botNick: from, packId } as XdccTransfer)
 				.then((transfers: XdccTransfer[]) => {
-					// The should be only one...
-					transfers.forEach(transfer => {
-						transfer.fileName = fileName;
-						if (isQueued) {
-							transfer.state = XdccTransferState.queued;
-							this.emit(XdccEvents.xdccQueued, transfer);
-						}
-					});
-					if (this.options.acceptUnpooled && (!transfers || !transfers.length)) {
+					if (transfers && transfers.length) {
+						// There should be only one...
+						transfers.forEach(transfer => {
+							transfer.fileName = fileName;
+							if (isQueued) {
+								transfer.state = XdccTransferState.queued;
+								this.emit(XdccEvents.xdccQueued, transfer);
+							}
+						});
+					}
+					else if (this.options.acceptUnpooled) {
 						const packInfo = new XdccPackInfo();
 						packInfo.botNick = from;
 						packInfo.packId = packId;

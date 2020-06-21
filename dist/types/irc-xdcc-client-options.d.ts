@@ -103,5 +103,13 @@ export declare class XdccClientOptions {
      * The regular expression used to parse a send announce from a bot
      */
     sendParser: RegExp;
+    /**
+     * The regular expression used as a replacement source for special characters in filenames
+     */
+    specialChars: RegExp;
+    /**
+     * The alternative character to replace special characters in filenames
+     */
+    specialCharsAlternative: string;
 }
 //# sourceMappingURL=irc-xdcc-client-options.d.ts.map

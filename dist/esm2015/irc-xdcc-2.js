@@ -310,7 +310,7 @@ class XdccClient extends irc_1.Client {
         // Delay handling so the notice with filename can be parsed... (?)
         setTimeout(() => this.search({
             botNick: xdccMessage.sender,
-            fileName: xdccMessage.params[2]
+            fileName: (xdccMessage.params[2] || '').replace(this.options.specialChars, this.options.specialCharsAlternative)
         })
             .then((transfers) => {
             if (transfers.length) {
@@ -334,7 +334,7 @@ class XdccClient extends irc_1.Client {
             transfer.params = xdccMessage.params;
             transfer.lastCommand = xdccMessage.params[1].toUpperCase();
             if (transfer.lastCommand === 'SEND') {
-                transfer.fileName = xdccMessage.params[2];
+                transfer.fileName = (xdccMessage.params[2] || '').replace(this.options.specialChars, this.options.specialCharsAlternative);
                 transfer.ip = converter_1.converter.intToIp(xdccMessage.params[3]);
                 transfer.port = parseInt(xdccMessage.params[4], 10);
                 transfer.fileSize = parseInt(xdccMessage.params[5], 10);
@@ -342,7 +342,7 @@ class XdccClient extends irc_1.Client {
                     .then(this.validateTransferDestination.bind(this));
             }
             else if (transfer.lastCommand === 'ACCEPT'
-                && transfer.fileName === xdccMessage.params[2]
+                && transfer.fileName === (xdccMessage.params[2] || '').replace(this.options.specialChars, this.options.specialCharsAlternative)
                 && transfer.port === parseInt(xdccMessage.params[3], 10)
                 && transfer.resumePosition === parseInt(xdccMessage.params[4], 10)) {
                 return Promise.resolve(transfer);
@@ -374,19 +374,21 @@ class XdccClient extends irc_1.Client {
         const dccQueuedMessage = text.match(this.options.queuedParser);
         if (dccSendMessage || dccQueuedMessage) {
             let packId = dccSendMessage ? dccSendMessage[3] : dccQueuedMessage[1];
-            let fileName = dccSendMessage ? dccSendMessage[4] : dccQueuedMessage[2];
+            let fileName = (dccSendMessage ? dccSendMessage[4] : dccQueuedMessage[2] || '').replace(this.options.specialChars, this.options.specialCharsAlternative);
             let isQueued = !dccSendMessage;
             this.search({ botNick: from, packId })
                 .then((transfers) => {
-                // The should be only one...
-                transfers.forEach(transfer => {
-                    transfer.fileName = fileName;
-                    if (isQueued) {
-                        transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.queued;
-                        this.emit(irc_xdcc_events_1.XdccEvents.xdccQueued, transfer);
-                    }
-                });
-                if (this.options.acceptUnpooled && (!transfers || !transfers.length)) {
+                if (transfers && transfers.length) {
+                    // There should be only one...
+                    transfers.forEach(transfer => {
+                        transfer.fileName = fileName;
+                        if (isQueued) {
+                            transfer.state = irc_xdcc_transfer_state_1.XdccTransferState.queued;
+                            this.emit(irc_xdcc_events_1.XdccEvents.xdccQueued, transfer);
+                        }
+                    });
+                }
+                else if (this.options.acceptUnpooled) {
                     const packInfo = new irc_xdcc_pack_info_1.XdccPackInfo();
                     packInfo.botNick = from;
                     packInfo.packId = packId;

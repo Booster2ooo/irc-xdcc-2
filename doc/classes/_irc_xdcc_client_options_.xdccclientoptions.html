@@ -108,6 +108,8 @@
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_client_options_.xdccclientoptions.html#sendcommand" class="tsd-kind-icon">send<wbr>Command</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_client_options_.xdccclientoptions.html#sendparser" class="tsd-kind-icon">send<wbr>Parser</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_client_options_.xdccclientoptions.html#server" class="tsd-kind-icon">server</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_client_options_.xdccclientoptions.html#specialchars" class="tsd-kind-icon">special<wbr>Chars</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_client_options_.xdccclientoptions.html#specialcharsalternative" class="tsd-kind-icon">special<wbr>Chars<wbr>Alternative</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_client_options_.xdccclientoptions.html#stripcolors" class="tsd-kind-icon">strip<wbr>Colors</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_irc_xdcc_client_options_.xdccclientoptions.html#username" class="tsd-kind-icon">user<wbr>Name</a></li>
 							</ul>
@@ -225,7 +227,7 @@
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="dccparser" class="tsd-anchor"></a>
 					<h3>dcc<wbr>Parser</h3>
-					<div class="tsd-signature tsd-kind-icon">dcc<wbr>Parser<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RegExp</span><span class="tsd-signature-symbol"> =&nbsp;/DCC (\w+) [&#x27;&quot;]?([\w\.\-\[\]_+ !\(\)#]+?)[&#x27;&quot;]? (\d+|[\da-f:]+) (\d+) ?(\d+)?/</span></div>
+					<div class="tsd-signature tsd-kind-icon">dcc<wbr>Parser<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RegExp</span><span class="tsd-signature-symbol"> =&nbsp;/DCC (\w+) [&#x27;&quot;]?([\w\.\-\[\]_+ !,\&amp;\(\)#]+?)[&#x27;&quot;]? (\d+|[\da-f:]+) (\d+) ?(\d+)?/</span></div>
 					<aside class="tsd-sources">
 						<ul>
 							<li>Defined in irc-xdcc-client-options.ts:98</li>
@@ -478,6 +480,36 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="specialchars" class="tsd-anchor"></a>
+					<h3>special<wbr>Chars</h3>
+					<div class="tsd-signature tsd-kind-icon">special<wbr>Chars<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RegExp</span><span class="tsd-signature-symbol"> =&nbsp;/[\s&#x27;]/g</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in irc-xdcc-client-options.ts:110</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The regular expression used as a replacement source for special characters in filenames</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="specialcharsalternative" class="tsd-anchor"></a>
+					<h3>special<wbr>Chars<wbr>Alternative</h3>
+					<div class="tsd-signature tsd-kind-icon">special<wbr>Chars<wbr>Alternative<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;_&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in irc-xdcc-client-options.ts:114</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The alternative character to replace special characters in filenames</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="stripcolors" class="tsd-anchor"></a>
 					<h3>strip<wbr>Colors</h3>
 					<div class="tsd-signature tsd-kind-icon">strip<wbr>Colors<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
@@ -619,6 +651,12 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_irc_xdcc_client_options_.xdccclientoptions.html#server" class="tsd-kind-icon">server</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_irc_xdcc_client_options_.xdccclientoptions.html#specialchars" class="tsd-kind-icon">special<wbr>Chars</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_irc_xdcc_client_options_.xdccclientoptions.html#specialcharsalternative" class="tsd-kind-icon">special<wbr>Chars<wbr>Alternative</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_irc_xdcc_client_options_.xdccclientoptions.html#stripcolors" class="tsd-kind-icon">strip<wbr>Colors</a>

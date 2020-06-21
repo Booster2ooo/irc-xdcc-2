@@ -95,7 +95,7 @@ export class XdccClientOptions {
 	/**
 	 * The regular expression used to parse a DCC message from a bot
 	 */
-	dccParser: RegExp = /DCC (\w+) ['"]?([\w\.\-\[\]_+ !\(\)#]+?)['"]? (\d+|[\da-f:]+) (\d+) ?(\d+)?/ ;
+	dccParser: RegExp = /DCC (\w+) ['"]?([\w\.\-\[\]_+ !,\&\(\)#]+?)['"]? (\d+|[\da-f:]+) (\d+) ?(\d+)?/ ;
 	/**
 	 * The regular expression used to parse a queued announce from a bot
 	 */
@@ -104,4 +104,12 @@ export class XdccClientOptions {
 	 * The regular expression used to parse a send announce from a bot
 	 */
 	sendParser: RegExp = /sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i;
+	/**
+	 * The regular expression used as a replacement source for special characters in filenames
+	 */
+	specialChars: RegExp = /[\s']/g;
+	/**
+	 * The alternative character to replace special characters in filenames
+	 */
+	specialCharsAlternative: string = '_';
 }
