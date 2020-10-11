@@ -104,6 +104,10 @@ export declare class XdccClientOptions {
      */
     sendParser: RegExp;
     /**
+     * The regular expression used to parse a rejection from the bot
+     */
+    rejectionParses: RegExp;
+    /**
      * The regular expression used as a replacement source for special characters in filenames
      */
     specialChars: RegExp;

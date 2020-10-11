@@ -108,6 +108,10 @@ var XdccClientOptions = /** @class */ (function () {
          */
         this.sendParser = /sending( you)?( queued)? pack #?(\d+) \("(.+)"\)/i;
         /**
+         * The regular expression used to parse a rejection from the bot
+         */
+        this.rejectionParses = /all slots full/i;
+        /**
          * The regular expression used as a replacement source for special characters in filenames
          */
         this.specialChars = /[\s']/g;

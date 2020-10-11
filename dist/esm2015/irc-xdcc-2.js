@@ -118,6 +118,9 @@ class XdccClient extends irc_1.Client {
             this.emit(irc_xdcc_events_1.XdccEvents.xdccError, error);
             return Promise.reject(error);
         }
+        if (packInfo.fileName) {
+            packInfo.fileName = packInfo.fileName.replace(this.options.specialChars, this.options.specialCharsAlternative);
+        }
         packInfo.server = this.server;
         return this.search(packInfo)
             .then((transfers) => {

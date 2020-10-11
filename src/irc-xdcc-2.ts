@@ -142,6 +142,9 @@ export class XdccClient extends Client {
 			this.emit(XdccEvents.xdccError, error);
 			return Promise.reject(error);
 		}
+		if (packInfo.fileName) {
+			packInfo.fileName = packInfo.fileName.replace(this.options.specialChars, this.options.specialCharsAlternative);
+		}
 		packInfo.server = this.server;
 		return this.search(packInfo as XdccTransfer)
 			.then((transfers: XdccTransfer[]) => {
